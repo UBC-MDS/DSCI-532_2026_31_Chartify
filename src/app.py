@@ -3,15 +3,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
+from chatlas import ChatAnthropic
+import querychat
+from dotenv import load_dotenv
+load_dotenv()
+
 try:
     from . import get_data as gd
 except ImportError:
     import get_data as gd
 
-# Import the Dataset
+
+# Import the dataset
 df = gd.get_data()
 
-# Create a dictionary of Artist Names for the ui.input_selectize()
+# Create a list of Artist Names for the ui.input_selectize()
 artists = list(df.Artist.unique())
 artists.sort() # Sort the list of artists alphabetically
 
@@ -29,76 +35,25 @@ NUMERICAL_FEATURES = [
 ]
 
 
-app_ui = ui.page_fluid(
 
-    ui.tags.style("""
-    @import url('https://fonts.googleapis.com/css2?family=Circular+Std&display=swap');
+qc = querychat.QueryChat(
+    df,
+    "df",
+    client=ChatAnthropic(model="claude-haiku-4-5-20251001"),
+    greeting="Hi! Ask me anything about this music dataset. Try: 'Show me all songs by Drake' or 'Filter to songs with over 100 million streams'",
+)
 
-    * { font-family: 'Circular Std', Helvetica, sans-serif; }
-    body { background-color: #191414; color: white; }
-    .card { background-color: #1e1e1e; border-color: #333333; color: white; }
-    .card h4 { color: white; }
-    .form-control { background-color: #2a2a2a; color: white; border-color: #333333; }
-    .form-control::placeholder { color: #888888; }
 
-    /* Table header text */
-    thead th, .shiny-data-grid thead th {
-        color: #000000 !important;
-        background-color: #1DB954 !important;
-    }
-                  
-    /* Title */
-    h1 {
-        font-family: 'Circular Std', Helvetica, sans-serif;
-        font-weight: 900;
-        color: white !important;
-        -webkit-text-fill-color: white !important;
-    }
+app_ui = ui.page_navbar(
 
-    /* Card green outlines */
-    .card {
-        border: 1px solid #1DB954 !important;
-    }
-    
-    /* Green border on ALL dropdowns/inputs */
-    .form-control, .selectize-input, select.form-control {
-        border: 1px solid #1DB954 !important;
-        background-color: #2a2a2a !important;
-        color: white !important;
-    }
-                  
-    /* Fix dropdown background (the select element itself) */
-    .shiny-input-select select,
-    select {
-        background-color: #2a2a2a !important;
-        color: white !important;
-        border: 1px solid #1DB954 !important;
-    }
+    ui.nav_panel("Dashboard",
+        ui.h1("Chartify"),
 
-    /* Right green border line */
-    .bslib-sidebar-layout > .main {
-        border-left: 2px solid #1DB954 !important;
-    }
-    
-    /* Sidebar background */
-    .bslib-sidebar-layout > .sidebar {
-        background-color: #111111 !important;
-        border-right: 2px solid #1DB954 !important;
-    }
+        ui.layout_sidebar(
 
-    /* Radio button label visibility */
-    .shiny-input-radiogroup label,
-    .control-label,
-    .radio label { color: white !important; }
-"""),
-
-    ui.h1("Chartify"),
-
-    ui.layout_sidebar(
-
-        ui.sidebar(
-            ui.h4("Filters"),
-            ui.input_selectize("artist", 
+            ui.sidebar(
+                ui.h4("Filters"),
+                ui.input_selectize("artist", 
                                "Select The Artist's Name", 
                                choices=artists, 
                                remove_button=True, 
@@ -108,36 +63,111 @@ app_ui = ui.page_fluid(
                                         }
                                    )
                                ),
-            ui.input_select("filter_metric", "Metric of Interest",
-                            choices=["Streams", "Likes", "Views", "Comments"],
-                            selected="Streams"),
-            ui.input_radio_buttons("filter_platform", "Platform",
-                                   choices=["Spotify", "Youtube", "Both"],
-                                   selected="Both"),
-            width=300,
+                ui.input_select("filter_metric", "Metric of Interest",
+                                choices=["Streams", "Likes", "Views", "Comments"],
+                                selected="Streams"),
+                ui.input_radio_buttons("filter_platform", "Platform",
+                                    choices=["Spotify", "Youtube", "Both"],
+                                    selected="Both"),
+                width=300,
+            ),
+
+            ui.row(
+                ui.column(4, ui.value_box(title="Avg. Stream",
+                                        value=ui.output_ui("card_avg_stream"))),
+                ui.column(4, ui.value_box(title="Avg. Likes",
+                                        value=ui.output_ui("card_avg_likes"))),
+                ui.column(4, ui.value_box(title="Avg. Views",
+                                        value=ui.output_text("card_avg_views"))),
+            ),
+
+            ui.br(),
+
+            ui.output_plot("scatter_plot", height="800px"),
+
+            ui.br(),
+
+            ui.column(12, ui.card(ui.h4("Top 5 Songs"), ui.output_data_frame("top_5"))),
         ),
-
-        ui.row(
-            ui.column(4, ui.value_box(title="Avg. Stream",
-                                      value=ui.output_ui("card_avg_stream"))),
-            ui.column(4, ui.value_box(title="Avg. Likes",
-                                      value=ui.output_ui("card_avg_likes"))),
-            ui.column(4, ui.value_box(title="Avg. Views",
-                                      value=ui.output_text("card_avg_views"))),
-        ),
-
-        ui.br(),
-
-        ui.output_plot("scatter_plot", height="800px"),
-
-        ui.br(),
-
-        ui.column(12, ui.card(ui.h4("Top 5 Songs"), ui.output_data_frame("top_5"))),
     ),
+
+    ui.nav_panel("AI Assistant",
+    ui.page_sidebar(
+        qc.sidebar(),
+        fillable=True,
+        ),
+    ),
+
+    title="Chartify",
+
+
+    header=ui.tags.style("""
+        @import url('https://fonts.googleapis.com/css2?family=Circular+Std&display=swap');
+
+        * { font-family: 'Circular Std', Helvetica, sans-serif; }
+        body { background-color: #191414; color: white; }
+        .card { background-color: #1e1e1e; border-color: #333333; color: white; }
+        .card h4 { color: white; }
+        .form-control { background-color: #2a2a2a; color: white; border-color: #333333; }
+        .form-control::placeholder { color: #888888; }
+
+        /* Table header text */
+        thead th, .shiny-data-grid thead th {
+            color: #000000 !important;
+            background-color: #1DB954 !important;
+        }
+                    
+        /* Title */
+        h1 {
+            font-family: 'Circular Std', Helvetica, sans-serif;
+            font-weight: 900;
+            color: white !important;
+            -webkit-text-fill-color: white !important;
+        }
+
+        /* Card green outlines */
+        .card {
+            border: 1px solid #1DB954 !important;
+        }
+        
+        /* Green border on ALL dropdowns/inputs */
+        .form-control, .selectize-input, select.form-control {
+            border: 1px solid #1DB954 !important;
+            background-color: #2a2a2a !important;
+            color: white !important;
+        }
+                    
+        /* Fix dropdown background (the select element itself) */
+        .shiny-input-select select,
+        select {
+            background-color: #2a2a2a !important;
+            color: white !important;
+            border: 1px solid #1DB954 !important;
+        }
+
+        /* Right green border line */
+        .bslib-sidebar-layout > .main {
+            border-left: 2px solid #1DB954 !important;
+        }
+        
+        /* Sidebar background */
+        .bslib-sidebar-layout > .sidebar {
+            background-color: #111111 !important;
+            border-right: 2px solid #1DB954 !important;
+        }
+
+        /* Radio button label visibility */
+        .shiny-input-radiogroup label,
+        .control-label,
+        .radio label { color: white !important; }
+    """),
 )
 
 
 def server(input, output, session):
+
+    qc_vals = qc.server()
+    # qc_vals.df(), will give filtered df later
 
     @reactive.calc
     def filtered():
