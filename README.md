@@ -23,3 +23,25 @@ If you are interested in contributing to this dashboard, please review the [CONT
 - Development guidelines
 
 By contributing to the project you accept and agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+### Quick-Start Setup Instructions:
+
+To install the required packages and run the app locally, copy and paste the following code into your terminal.
+
+```bash
+# After opening a terminal:
+git clone https://github.com/UBC-MDS/DSCI-532_2026_Group_31_Chartify.git
+cd DSCI-532_2026_Group_31_Chartify/
+
+# Optional (but suggested): make a fresh environment
+conda env create -f environment.yml
+# Activate environment
+conda activate chartify
+
+# Run draft application locally  
+python src/app.py # → http://127.0.0.1:8050
+
+# Optional (but suggested): deactivate environment when done
+conda deactivate
+```
+
