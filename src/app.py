@@ -14,8 +14,12 @@ except ImportError:
     import get_data as gd
 
 
-
+# Import the dataset
 df = gd.get_data()
+
+# Create a list of Artist Names for the ui.input_selectize()
+artists = list(df.Artist.unique())
+artists.sort() # Sort the list of artists alphabetically
 
 METRIC_COLUMN_MAP = {
     "Streams": "Stream",
@@ -49,7 +53,16 @@ app_ui = ui.page_navbar(
 
             ui.sidebar(
                 ui.h4("Filters"),
-                ui.input_text("artist", "Enter The Artist's Name", value='Beyonce'),
+                ui.input_selectize("artist", 
+                               "Select The Artist's Name", 
+                               choices=artists, 
+                               remove_button=True, 
+                               options=(
+                                   {
+                                        "placeholder": "Enter text"
+                                        }
+                                   )
+                               ),
                 ui.input_select("filter_metric", "Metric of Interest",
                                 choices=["Streams", "Likes", "Views", "Comments"],
                                 selected="Streams"),
