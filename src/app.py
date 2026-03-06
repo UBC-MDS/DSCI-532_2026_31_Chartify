@@ -44,6 +44,7 @@ qc = querychat.QueryChat(
 )
 
 
+
 app_ui = ui.page_navbar(
 
     ui.nav_panel("Dashboard",
@@ -223,6 +224,80 @@ app_ui = ui.page_navbar(
 
         /* Filters h4 white */
         .sidebar h4 {
+            color: white !important;
+        }
+        .querychat-sidebar::before,
+        .sidebar[data-tab="AI Assistant"]::before {
+            content: "ChartBot";
+            display: block;
+            font-family: 'Circular Std', Helvetica, sans-serif;
+            font-weight: 900;
+            font-size: 1.8rem;
+            color: white;
+            padding: 16px 16px 8px 16px;
+        }
+        .querychat-message.assistant,
+        [class*="querychat"] [class*="assistant"] {
+            background-color: #2a2a2a !important;
+            color: white !important;
+            border: 1px solid #1DB954 !important;
+            border-radius: 12px !important;
+            padding: 10px 14px !important;
+        }
+        
+        /* Chat message bubbles - User */
+        .querychat-message.user,
+        [class*="querychat"] [class*="user"] {
+            background-color: #1DB954 !important;
+            color: black !important;
+            border-radius: 12px !important;
+            padding: 10px 14px !important;
+        }
+
+        /* General text visibility in chat */
+        [class*="querychat"] p,
+        [class*="querychat"] span,
+        [class*="querychat"] div {
+            color: white !important;
+        }
+
+        /* Avatar/icon circle */
+        [class*="querychat"] [class*="avatar"],
+        [class*="querychat"] svg {
+            color: #1DB954 !important;
+            border-color: #1DB954 !important;
+        }
+                         
+        /* SQL query code block */
+        [class*="querychat"] pre,
+        [class*="querychat"] code,
+        .querychat-query-box,
+        pre code {
+            background-color: #1e1e1e !important;
+            color: #1DB954 !important;
+            border: 1px solid #333333 !important;
+            border-radius: 8px !important;
+        }
+
+        /* Apply Filter button */
+        [class*="querychat"] button,
+        .querychat-apply-btn {
+            background-color: transparent !important;
+            color: #1DB954 !important;
+            border: 1px solid #1DB954 !important;
+            border-radius: 8px !important;
+        }
+
+        [class*="querychat"] button:hover {
+            background-color: #1DB954 !important;
+            color: black !important;
+        }
+
+        /* The card/bubble wrapping the query */
+        .querychat-sidebar .card,
+        .querychat-sidebar [class*="card"] {
+            background-color: #2a2a2a !important;
+            border: 1px solid #1DB954 !important;
             color: white !important;
         }
 
