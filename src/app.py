@@ -165,15 +165,11 @@ app_ui = ui.page_navbar(
             border: 1px solid #1DB954 !important;
         }
 
-        /* Right green border line */
-        .bslib-sidebar-layout > .main {
-            border-left: 2px solid #1DB954 !important;
-        }
+    
         
         /* Sidebar background */
         .bslib-sidebar-layout > .sidebar {
             background-color: #111111 !important;
-            border-right: 2px solid #1DB954 !important;
                          
         }
                                         
@@ -181,7 +177,6 @@ app_ui = ui.page_navbar(
         .bslib-sidebar-layout .collapse-toggle {
             color: #1DB954 !important;
             background-color: #111111 !important;
-            border: 1px solid #1DB954 !important;
         }
                          
         .bslib-sidebar-layout .collapse-toggle:hover {
