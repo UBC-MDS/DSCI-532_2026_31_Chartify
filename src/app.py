@@ -111,8 +111,23 @@ app_ui = ui.page_navbar(
 
         * { font-family: 'Circular Std', Helvetica, sans-serif; }
         body { background-color: #191414; color: white; }
-        .card { background-color: #1e1e1e; border-color: #333333; color: white; }
+        .card { background-color: #2a2a2a; border-color: #333333; color: white; }
         .card h4 { color: white; }
+        .bslib-value-box {
+            background-color: #2a2a2a !important;
+            border: 1px solid #1DB954 !important;
+            color: white !important;
+        }
+        .bslib-value-box .value-box-value,
+        .bslib-value-box .value-box-title,
+        .bslib-value-box p,
+        .bslib-value-box span {
+            color: white !important;
+        }
+        .bslib-value-box .value-box-showcase {
+            background-color: #1DB954 !important;
+            color: white !important;
+        }
         .form-control { background-color: #2a2a2a; color: white; border-color: #333333; }
         .form-control::placeholder { color: #888888; }
 
