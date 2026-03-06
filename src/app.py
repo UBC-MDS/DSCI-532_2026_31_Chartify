@@ -47,7 +47,6 @@ qc = querychat.QueryChat(
 app_ui = ui.page_navbar(
 
     ui.nav_panel("Dashboard",
-        ui.h1("Chartify"),
 
         ui.layout_sidebar(
 
@@ -188,6 +187,37 @@ app_ui = ui.page_navbar(
         .bslib-sidebar-layout .collapse-toggle:hover {
             background-color: #1DB954 !important;
             color: black !important;
+        }
+        
+        /* Navbar - black background, white text, Spotify font */
+        .navbar {
+            background-color: #000000 !important;
+        }
+
+        .navbar-brand,
+        .navbar .navbar-brand {
+            color: white !important;
+            font-weight: 900 !important;
+            font-size: 1.4rem !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: #b3b3b3 !important;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            color: white !important;
+        }
+
+        /* Active tab underline in green */
+        .navbar-nav .nav-link.active {
+            border-bottom: 2px solid #1DB954 !important;
+        }
+
+        /* Filters h4 white */
+        .sidebar h4 {
+            color: white !important;
         }
 
         /* Radio button label visibility */
