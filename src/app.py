@@ -94,6 +94,11 @@ app_ui = ui.page_navbar(
     ui.nav_panel("AI Assistant",
     ui.page_sidebar(
         qc.sidebar(),
+        ui.card(
+            ui.card_header("Filtered Chartify Data"),
+            ui.output_data_frame("queried_df_tbl")
+        ),
+        ui.layout_columns(ui.download_button("export_queried_df", "Download as CSV")),
         fillable=True,
         ),
     ),
@@ -168,6 +173,18 @@ def server(input, output, session):
 
     qc_vals = qc.server()
     # qc_vals.df(), will give filtered df later
+
+    @reactive.calc
+    def queried_data():
+        return qc_vals.df()
+    
+    @render.data_frame
+    def queried_df_tbl():
+        return queried_data()
+
+    @render.download(filename="chartify_data.csv")
+    def export_queried_df():
+        yield queried_data().to_csv(index=False)
 
     @reactive.calc
     def filtered():
