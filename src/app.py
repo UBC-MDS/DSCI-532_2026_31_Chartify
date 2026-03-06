@@ -44,15 +44,15 @@ qc = querychat.QueryChat(
 )
 
 
+
 app_ui = ui.page_navbar(
 
     ui.nav_panel("Dashboard",
-        ui.h1("Chartify"),
 
         ui.layout_sidebar(
 
             ui.sidebar(
-                ui.h4("Filters"),
+                ui.h4("Filters", color='white'),
                 ui.input_selectize("artist", 
                                "Select The Artist's Name", 
                                choices=artists, 
@@ -70,6 +70,7 @@ app_ui = ui.page_navbar(
                                     choices=["Spotify", "Youtube", "Both"],
                                     selected="Both"),
                 width=300,
+                open={"desktop": "open", "mobile": "closed"},
             ),
 
             ui.row(
@@ -111,8 +112,23 @@ app_ui = ui.page_navbar(
 
         * { font-family: 'Circular Std', Helvetica, sans-serif; }
         body { background-color: #191414; color: white; }
-        .card { background-color: #1e1e1e; border-color: #333333; color: white; }
+        .card { background-color: #2a2a2a; border-color: #333333; color: white; }
         .card h4 { color: white; }
+        .bslib-value-box {
+            background-color: #2a2a2a !important;
+            border: 1px solid #1DB954 !important;
+            color: white !important;
+        }
+        .bslib-value-box .value-box-value,
+        .bslib-value-box .value-box-title,
+        .bslib-value-box p,
+        .bslib-value-box span {
+            color: white !important;
+        }
+        .bslib-value-box .value-box-showcase {
+            background-color: #1DB954 !important;
+            color: white !important;
+        }
         .form-control { background-color: #2a2a2a; color: white; border-color: #333333; }
         .form-control::placeholder { color: #888888; }
 
@@ -121,6 +137,17 @@ app_ui = ui.page_navbar(
             color: #000000 !important;
             background-color: #1DB954 !important;
         }
+        
+        /* Table hover logic*/
+         .shiny-data-grid tbody tr:hover {
+            background-color: transparent !important;
+        }
+
+        .shiny-data-grid tbody tr:hover td {
+            background-color: inherit !important;
+            color: inherit !important;
+            box-shadow: inset 0 1px 0 #1DB954, inset 0 -1px 0 #1DB954;
+        }                
                     
         /* Title */
         h1 {
@@ -150,15 +177,128 @@ app_ui = ui.page_navbar(
             border: 1px solid #1DB954 !important;
         }
 
-        /* Right green border line */
-        .bslib-sidebar-layout > .main {
-            border-left: 2px solid #1DB954 !important;
-        }
+    
         
         /* Sidebar background */
         .bslib-sidebar-layout > .sidebar {
             background-color: #111111 !important;
-            border-right: 2px solid #1DB954 !important;
+                         
+        }
+                                        
+         /* Sidebar collapse toggle */                
+        .bslib-sidebar-layout .collapse-toggle {
+            color: #1DB954 !important;
+            background-color: #111111 !important;
+        }
+                         
+        .bslib-sidebar-layout .collapse-toggle:hover {
+            background-color: #1DB954 !important;
+            color: black !important;
+        }
+        
+        /* Navbar - black background, white text, Spotify font */
+        .navbar {
+            background-color: #000000 !important;
+        }
+
+        .navbar-brand,
+        .navbar .navbar-brand {
+            color: white !important;
+            font-weight: 900 !important;
+            font-size: 1.4rem !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: #b3b3b3 !important;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            color: white !important;
+        }
+
+        /* Active tab underline in green */
+        .navbar-nav .nav-link.active {
+            border-bottom: 2px solid #1DB954 !important;
+        }
+
+        /* Filters h4 white */
+        .sidebar h4 {
+            color: white !important;
+        }
+        .querychat-sidebar::before,
+        .sidebar[data-tab="AI Assistant"]::before {
+            content: "ChartBot";
+            display: block;
+            font-family: 'Circular Std', Helvetica, sans-serif;
+            font-weight: 900;
+            font-size: 1.8rem;
+            color: white;
+            padding: 16px 16px 8px 16px;
+        }
+        .querychat-message.assistant,
+        [class*="querychat"] [class*="assistant"] {
+            background-color: #2a2a2a !important;
+            color: white !important;
+            border: 1px solid #1DB954 !important;
+            border-radius: 12px !important;
+            padding: 10px 14px !important;
+        }
+        
+        /* Chat message bubbles - User */
+        .querychat-message.user,
+        [class*="querychat"] [class*="user"] {
+            background-color: #1DB954 !important;
+            color: black !important;
+            border-radius: 12px !important;
+            padding: 10px 14px !important;
+        }
+
+        /* General text visibility in chat */
+        [class*="querychat"] p,
+        [class*="querychat"] span,
+        [class*="querychat"] div {
+            color: white !important;
+        }
+
+        /* Avatar/icon circle */
+        [class*="querychat"] [class*="avatar"],
+        [class*="querychat"] svg {
+            color: #1DB954 !important;
+            border-color: #1DB954 !important;
+        }
+                         
+        /* SQL query code block */
+        [class*="querychat"] pre,
+        [class*="querychat"] code,
+        .querychat-query-box,
+        pre code {
+            background-color: #1e1e1e !important;
+            color: #1DB954 !important;
+            border: 1px solid #333333 !important;
+            border-radius: 8px !important;
+        }
+
+        /* Apply Filter button */
+        [class*="querychat"] button,
+        .querychat-apply-btn {
+            background-color: transparent !important;
+            color: #1DB954 !important;
+            border: 1px solid #1DB954 !important;
+            border-radius: 8px !important;
+        }
+
+        [class*="querychat"] button:hover {
+            background-color: #1DB954 !important;
+            color: black !important;
+        }
+
+        /* The card/bubble wrapping the query */
+        .querychat-sidebar .card,
+        .querychat-sidebar [class*="card"] {
+            background-color: #2a2a2a !important;
+            border: 1px solid #1DB954 !important;
+            color: white !important;
         }
 
         /* Radio button label visibility */
