@@ -52,7 +52,7 @@ app_ui = ui.page_navbar(
         ui.layout_sidebar(
 
             ui.sidebar(
-                ui.h4("Filters"),
+                ui.h4("Filters", color='white'),
                 ui.input_selectize("artist", 
                                "Select The Artist's Name", 
                                choices=artists, 
@@ -70,6 +70,7 @@ app_ui = ui.page_navbar(
                                     choices=["Spotify", "Youtube", "Both"],
                                     selected="Both"),
                 width=300,
+                open={"desktop": "open", "mobile": "closed"},
             ),
 
             ui.row(
@@ -174,6 +175,19 @@ app_ui = ui.page_navbar(
         .bslib-sidebar-layout > .sidebar {
             background-color: #111111 !important;
             border-right: 2px solid #1DB954 !important;
+                         
+        }
+                                        
+         /* Sidebar collapse toggle */                
+        .bslib-sidebar-layout .collapse-toggle {
+            color: #1DB954 !important;
+            background-color: #111111 !important;
+            border: 1px solid #1DB954 !important;
+        }
+                         
+        .bslib-sidebar-layout .collapse-toggle:hover {
+            background-color: #1DB954 !important;
+            color: black !important;
         }
 
         /* Radio button label visibility */
