@@ -136,6 +136,17 @@ app_ui = ui.page_navbar(
             color: #000000 !important;
             background-color: #1DB954 !important;
         }
+        
+        /* Table hover logic*/
+         .shiny-data-grid tbody tr:hover {
+            background-color: transparent !important;
+        }
+
+        .shiny-data-grid tbody tr:hover td {
+            background-color: inherit !important;
+            color: inherit !important;
+            box-shadow: inset 0 1px 0 #1DB954, inset 0 -1px 0 #1DB954;
+        }                
                     
         /* Title */
         h1 {
