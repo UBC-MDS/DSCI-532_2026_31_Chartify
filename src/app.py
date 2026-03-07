@@ -96,20 +96,25 @@ app_ui = ui.page_navbar(
     ui.page_sidebar(
         qc.sidebar(),
         ui.layout_columns(
-            ui.column(8, ui.card(
+            ui.card(
                 ui.card_header("Box Plot"),
-                ui.p("Box Plot visualization.")
-            )),
-            ui.column(4, ui.card(
+                ui.p("Box Plot visualization."),
+                col_widths=8
+            ),
+            ui.card(
                 ui.card_header("Bar Chart"),
-                ui.output_plot("bar_plot")
-            )),
+                ui.output_plot("bar_plot"),
+                col_widths=4
+            ),
+            col_widths=[8, 4]
         ),
         ui.card(
             ui.card_header("Filtered Chartify Data"),
             ui.output_data_frame("queried_df_tbl")
         ),
-        ui.layout_columns(ui.download_button("export_queried_df", "Download as CSV")),
+        ui.layout_columns(
+            ui.download_button("export_queried_df", "Download as CSV")
+        ),
         fillable=True,
         ),
     ),
