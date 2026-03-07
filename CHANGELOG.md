@@ -10,9 +10,15 @@
 - modified artist input selection to now be a dropdown #67 for #65
 ### Known Issues
 - X-axis labels on scatter subplots can overlap at smaller window sizes
+- ChartBot chat window lacks dedicated scrollbar, long conversations extend the whole browser window
+- filtered Chartify dataframe on LLM tab window extends longer with every subsequent ChartBot query
   
-## Reflection
+### Reflection
+At this stage, we have successfully implemented the QueryChat chatbot that has a natural language interface, allowing for a more conversational approach to data exploration. This new feature allows the users to ask complex questions regarding the Spotify dataset such as "show me high energy and danceability songs on Spotify" and see the resulting visualization and table in real-time. We have also successfully addressed Milestone 2's feedback by applying proper theming to the metric cards and fixed the contrast and colors of some elements to improve the accessibility of the interface.
 
+We decided on an intentional deviation from the original Milestone 3 proposal: the transition from violin plots to box plots on the LLM tab. During development we realized that the density of audio metrics were too sparse when filtering the dataframe, which yielded no meaningful kernel density estimations. Following 531 visualization best practices, we pivoted to box plots so as to avoid misleading thin lines/shapes that occur in low density violin plots.
+
+Current limitations include the small number of data points per artist which limits the interpretability of lines of best fit, the lack of a dedicated scrollbar for ChartBot's chat window, and a lack of fixed height for the queried dataframe. Our planned improvements for future milestones include the addition of interactivity to the scatterplot charts, a surface tooltip with a song name on hover, and implementing fixed-height containers for ChartBot's chat window as well as the associated filtered dataframe.
 
 # [0.2.0] - 2026-02-28
 ### Added
@@ -43,7 +49,7 @@
 - X-axis labels on scatter subplots can overlap at smaller window sizes
 - Value boxes may show `NaN` if artist has no data for a given metric
 
-## Reflection
+### Reflection
 
 **Implementation Status**: Core filtering, summary cards, top 5 table, and scatter plot grid are all functional and deployed on Posit Cloud.
 
@@ -78,7 +84,7 @@ These may or may not be incorporated in further future developments.
 
 **Future Improvements**: Add interactivity back to scatter plot (e.g. Plotly once shinywidgets compatibility is resolved). Add artist search suggestions/autocomplete. Surface tooltip with song name on hover. Additional components and visualizations such as a bar chart to display the average song feature metrics by artist searched.
 
-# [0.2.0] - 2026-02-21
+# [0.1.0] - 2026-02-21
 ### Added
 
 - dataset selection discussion found in  issue #1 closed 
