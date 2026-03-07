@@ -1,20 +1,8 @@
-name: chartify
+name: chartify3
 channels:
   - conda-forge
 dependencies:
-  - shiny=0.6.1
   - python=3.11
-  - pandas=2.0
-  - numpy=1.24
-  - scikit-learn=1.8.0
-  - matplotlib=3.10.7
-  - jupyter=1.0
-  - dash>=2.16
-  - altair=6.0
-  - vegafusion=2.0
-  - pyarrow=23.0
-  - vl-convert-python>=1.3
   - pip
   - pip:
-      - plotly>=5.18
-      - kagglehub==1.0
+      - -r requirements.txt
