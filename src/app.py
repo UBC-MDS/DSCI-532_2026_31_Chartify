@@ -6,6 +6,7 @@ import numpy as np
 from chatlas import ChatGithub
 import querychat
 from dotenv import load_dotenv
+
 load_dotenv()
 
 try:
@@ -97,8 +98,8 @@ app_ui = ui.page_navbar(
         qc.sidebar(),
         ui.layout_columns(
             ui.card(
-                ui.card_header("Box Plot"),
-                ui.p("Box Plot visualization."),
+                ui.card_header("Musical Feature Distribution"),
+                ui.output_plot("box_plot"),
                 col_widths=8
             ),
             ui.card(
@@ -490,6 +491,39 @@ def server(input, output, session):
         data = filtered()
         avg = data["Likes"].mean() if (data["Likes"] != 0).any() else 0
         return f"{avg:,.0f}"
+    
+    @output
+    @render.plot
+    def box_plot():
+        queried_df = queried_data().copy()
+        song_feature = ['Danceability', 'Energy','Loudness', 'Speechiness', 'Acousticness',
+                    'Instrumentalness','Liveness', 'Valence', 'Tempo', 'EnergyLiveness']
+        labels = sorted(song_feature)
+        if queried_df.empty: # Create a box plot of all songs if the AI query returns an empty dataframe.
+            df_sorted = df[labels]
 
+            fig_box, ax_box = plt.subplots()
+
+            bplot = ax_box.boxplot(
+                df_sorted, 
+                patch_artist=True,
+                tick_labels=labels,
+                orientation='horizontal'
+                )
+            plt.gca().invert_yaxis()
+            return fig_box
+        
+        else: # Create a boxplot from the queried dataframe
+            queried_df_sorted = queried_df[labels]
+            fig_box, ax_box = plt.subplots()
+
+            bplot = ax_box.boxplot(
+                queried_df_sorted, 
+                patch_artist=True,
+                tick_labels=labels,
+                orientation='horizontal'
+                )
+            plt.gca().invert_yaxis()
+            return fig_box
 
 app = App(app_ui, server)

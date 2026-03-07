@@ -6,7 +6,7 @@ scikit-learn==1.8.0
 matplotlib==3.10.7
 altair==6.0.0
 jupyter==1.0
-vegafusion==2.0
+vegafusion==2.0.3
 pyarrow==23.0
 vl-convert-python==1.9.0
 chatlas==0.15.2
@@ -14,4 +14,4 @@ dotenv==0.9.9
 python-dotenv==1.2.2
 querychat==0.5.1
 shinychat==0.2.9
-
+plotly==6.6.0
