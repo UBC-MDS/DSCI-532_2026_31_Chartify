@@ -1,4 +1,4 @@
-name: chartify
+name: chartify3
 channels:
   - conda-forge
 dependencies:
