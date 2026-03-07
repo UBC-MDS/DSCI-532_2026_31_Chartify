@@ -16,8 +16,12 @@ conda env create -f environment.yml
 # Activate environment
 conda activate chartify
 
+# Optional for Assistant Chat (LLM) tab:
+# Copy `.env.example` and remove ".example" to be just `.env`.
+# Add the  API key for one of the providers, save and continue the rest of the steps
+
 # Run draft application locally  
-python src/app.py # → http://127.0.0.1:8050
+shiny run --reload --launch-browser src/app.py # → http://127.0.0.1:8050
 
 # Optional (but suggested): deactivate environment when done
 conda deactivate
