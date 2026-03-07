@@ -497,33 +497,44 @@ def server(input, output, session):
     def box_plot():
         queried_df = queried_data().copy()
         song_feature = ['Danceability', 'Energy','Loudness', 'Speechiness', 'Acousticness',
-                    'Instrumentalness','Liveness', 'Valence', 'Tempo', 'EnergyLiveness']
+                    'Instrumentalness','Liveness', 'Valence', 'Tempo']
         labels = sorted(song_feature)
-        if queried_df.empty: # Create a box plot of all songs if the AI query returns an empty dataframe.
-            df_sorted = df[labels]
-
-            fig_box, ax_box = plt.subplots()
-
-            bplot = ax_box.boxplot(
-                df_sorted, 
-                patch_artist=True,
-                tick_labels=labels,
-                orientation='horizontal'
-                )
-            plt.gca().invert_yaxis()
-            return fig_box
-        
+        BRAND_COLORS = [
+            "#1DB954", "#FC55FF", "#3FFF00", "#FF7733",
+            "#A0D6A0", "#FF6B9D", "#00D4FF", "#FFE135",
+            "#FF4500"
+        ]
+        boxplot_style = {
+            'whiskerprops': {'color': '#D3D3D3'},
+            'medianprops': {'color': "#4335FF"},
+            'flierprops': {'markerfacecolor': '#778899'},
+            'capprops': {'color': '#D3D3D3'}
+        }
+        color_pairs = dict(zip(song_feature, BRAND_COLORS))
+        sorted_color_pairs = {k:v for k, v in sorted(color_pairs.items(), key=lambda item:item[0])}
+        if queried_df.empty: # if the AI query returns an empty dataframe populate a No Data To Display Plot.
+            fig, ax = plt.subplots(facecolor="#191414")
+            ax.text(0.5, 0.5, "No data to display", ha="center", va="center",
+                    color="white", fontsize=13)
+            ax.set_facecolor("#191414")
+            ax.axis("off")
+            return fig
+                    
         else: # Create a boxplot from the queried dataframe
             queried_df_sorted = queried_df[labels]
-            fig_box, ax_box = plt.subplots()
-
+            fig_box, ax_box = plt.subplots(facecolor="#191414")
+            ax_box.set_facecolor("#1e1e1e")
             bplot = ax_box.boxplot(
                 queried_df_sorted, 
                 patch_artist=True,
                 tick_labels=labels,
-                orientation='horizontal'
+                orientation='horizontal',
+                **boxplot_style
                 )
+            ax_box.tick_params(axis="both", colors="white", labelsize=11)
             plt.gca().invert_yaxis()
+            for patch, color in zip(bplot['boxes'], list(sorted_color_pairs.values())):
+                patch.set_facecolor(color)
             return fig_box
 
 app = App(app_ui, server)
