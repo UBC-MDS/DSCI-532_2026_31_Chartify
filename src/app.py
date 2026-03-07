@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
-from chatlas import ChatAnthropic
+from chatlas import ChatGithub
 import querychat
 from dotenv import load_dotenv
 load_dotenv()
@@ -39,7 +39,7 @@ NUMERICAL_FEATURES = [
 qc = querychat.QueryChat(
     df,
     "df",
-    client=ChatAnthropic(model="claude-haiku-4-5-20251001"),
+    client=ChatGithub(model="gpt-4o-mini"),  # free tier model
     greeting="Hi! Ask me anything about this music dataset. Try: 'Show me all songs by Drake' or 'Filter to songs with over 100 million streams'",
 )
 
