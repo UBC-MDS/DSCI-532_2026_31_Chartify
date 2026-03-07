@@ -512,22 +512,14 @@ def server(input, output, session):
         }
         color_pairs = dict(zip(song_feature, BRAND_COLORS))
         sorted_color_pairs = {k:v for k, v in sorted(color_pairs.items(), key=lambda item:item[0])}
-        if queried_df.empty: # Create a box plot of all songs if the AI query returns an empty dataframe.
-            df_sorted = df[labels]
-
-            fig_box, ax_box = plt.subplots(facecolor="#191414")
-            ax_box.set_facecolor("#1e1e1e")
-            bplot = ax_box.boxplot(
-                df_sorted, 
-                patch_artist=True,
-                tick_labels=labels,
-                orientation='horizontal', 
-                **boxplot_style
-                )
-            ax_box.tick_params(axis="both", colors="white", labelsize=11)
-            plt.gca().invert_yaxis()
-            return fig_box
-        
+        if queried_df.empty: # if the AI query returns an empty dataframe populate a No Data To Display Plot.
+            fig, ax = plt.subplots(facecolor="#191414")
+            ax.text(0.5, 0.5, "No data to display", ha="center", va="center",
+                    color="white", fontsize=13)
+            ax.set_facecolor("#191414")
+            ax.axis("off")
+            return fig
+                    
         else: # Create a boxplot from the queried dataframe
             queried_df_sorted = queried_df[labels]
             fig_box, ax_box = plt.subplots(facecolor="#191414")
