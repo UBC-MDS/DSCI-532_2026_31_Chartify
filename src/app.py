@@ -402,6 +402,12 @@ def server(input, output, session):
     @render.plot
     def bar_plot():
         data = queried_data().copy()
+        if data.empty or "most_playedon" not in data.columns:
+            fig, ax = plt.subplots(facecolor="#191414")
+            ax.text(0.5, 0.5, "No data to display", ha="center", va="center", color="white")
+            ax.set_facecolor("#191414")
+            return fig
+        
         platform_counts = data["most_playedon"].fillna("Unknown").value_counts()
         platforms = ["Spotify", "Youtube"]
         counts = platform_counts.reindex(platforms, fill_value=0)
