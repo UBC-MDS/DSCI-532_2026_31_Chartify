@@ -95,6 +95,16 @@ app_ui = ui.page_navbar(
     ui.nav_panel("AI Assistant",
     ui.page_sidebar(
         qc.sidebar(),
+        ui.layout_columns(
+            ui.column(8, ui.card(
+                ui.card_header("Box Plot"),
+                ui.p("Box Plot visualization.")
+            )),
+            ui.column(4, ui.card(
+                ui.card_header("Bar Chart"),
+                ui.p("Bar Chart visualization.")
+            )),
+        ),
         ui.card(
             ui.card_header("Filtered Chartify Data"),
             ui.output_data_frame("queried_df_tbl")
