@@ -1,8 +1,16 @@
 # [0.3.0] - 2026-03-08
 ### Added
+- setup chatbot and new dashboard tab for natural and interactable querying #66 for #62
+- table display for chatbot filtered dataset and a download to csv button #68 for #62
+- collapsible feature/toggle for sidebar in both dashboard and AI assistant tabs #65
 ### Changed
+- some UI design choices according to feedback: further mentioned in `fixed` below
 ### Fixed
+- UI table hover, navbar styling, metric card theming #69 for #65
+- modified artist input selection to now be a dropdown #67 for #65
 ### Known Issues
+- X-axis labels on scatter subplots can overlap at smaller window sizes
+  
 ## Reflection
 
 
