@@ -3,13 +3,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
+from chatlas import ChatAnthropic
+import querychat
+from dotenv import load_dotenv
+load_dotenv()
+
 try:
     from . import get_data as gd
 except ImportError:
     import get_data as gd
 
 
+# Import the dataset
 df = gd.get_data()
+
+# Create a list of Artist Names for the ui.input_selectize()
+artists = list(df.Artist.unique())
+artists.sort() # Sort the list of artists alphabetically
 
 METRIC_COLUMN_MAP = {
     "Streams": "Stream",
@@ -25,106 +35,296 @@ NUMERICAL_FEATURES = [
 ]
 
 
-app_ui = ui.page_fluid(
 
-    ui.tags.style("""
-    @import url('https://fonts.googleapis.com/css2?family=Circular+Std&display=swap');
+qc = querychat.QueryChat(
+    df,
+    "df",
+    client=ChatAnthropic(model="claude-haiku-4-5-20251001"),
+    greeting="Hi! Ask me anything about this music dataset. Try: 'Show me all songs by Drake' or 'Filter to songs with over 100 million streams'",
+)
 
-    * { font-family: 'Circular Std', Helvetica, sans-serif; }
-    body { background-color: #191414; color: white; }
-    .card { background-color: #1e1e1e; border-color: #333333; color: white; }
-    .card h4 { color: white; }
-    .form-control { background-color: #2a2a2a; color: white; border-color: #333333; }
-    .form-control::placeholder { color: #888888; }
 
-    /* Table header text */
-    thead th, .shiny-data-grid thead th {
-        color: #000000 !important;
-        background-color: #1DB954 !important;
-    }
-                  
-    /* Title */
-    h1 {
-        font-family: 'Circular Std', Helvetica, sans-serif;
-        font-weight: 900;
-        color: white !important;
-        -webkit-text-fill-color: white !important;
-    }
 
-    /* Card green outlines */
-    .card {
-        border: 1px solid #1DB954 !important;
-    }
-    
-    /* Green border on ALL dropdowns/inputs */
-    .form-control, .selectize-input, select.form-control {
-        border: 1px solid #1DB954 !important;
-        background-color: #2a2a2a !important;
-        color: white !important;
-    }
-                  
-    /* Fix dropdown background (the select element itself) */
-    .shiny-input-select select,
-    select {
-        background-color: #2a2a2a !important;
-        color: white !important;
-        border: 1px solid #1DB954 !important;
-    }
+app_ui = ui.page_navbar(
 
-    /* Right green border line */
-    .bslib-sidebar-layout > .main {
-        border-left: 2px solid #1DB954 !important;
-    }
-    
-    /* Sidebar background */
-    .bslib-sidebar-layout > .sidebar {
-        background-color: #111111 !important;
-        border-right: 2px solid #1DB954 !important;
-    }
+    ui.nav_panel("Dashboard",
 
-    /* Radio button label visibility */
-    .shiny-input-radiogroup label,
-    .control-label,
-    .radio label { color: white !important; }
-"""),
+        ui.layout_sidebar(
 
-    ui.h1("Chartify"),
+            ui.sidebar(
+                ui.h4("Filters", color='white'),
+                ui.input_selectize("artist", 
+                               "Select The Artist's Name", 
+                               choices=artists, 
+                               remove_button=True, 
+                               options=(
+                                   {
+                                        "placeholder": "Enter text"
+                                        }
+                                   )
+                               ),
+                ui.input_select("filter_metric", "Metric of Interest",
+                                choices=["Streams", "Likes", "Views", "Comments"],
+                                selected="Streams"),
+                ui.input_radio_buttons("filter_platform", "Platform",
+                                    choices=["Spotify", "Youtube", "Both"],
+                                    selected="Both"),
+                width=300,
+                open={"desktop": "open", "mobile": "closed"},
+            ),
 
-    ui.layout_sidebar(
+            ui.row(
+                ui.column(4, ui.value_box(title="Avg. Stream",
+                                        value=ui.output_ui("card_avg_stream"))),
+                ui.column(4, ui.value_box(title="Avg. Likes",
+                                        value=ui.output_ui("card_avg_likes"))),
+                ui.column(4, ui.value_box(title="Avg. Views",
+                                        value=ui.output_text("card_avg_views"))),
+            ),
 
-        ui.sidebar(
-            ui.h4("Filters"),
-            ui.input_text("artist", "Enter The Artist's Name", value='Beyonce'),
-            ui.input_select("filter_metric", "Metric of Interest",
-                            choices=["Streams", "Likes", "Views", "Comments"],
-                            selected="Streams"),
-            ui.input_radio_buttons("filter_platform", "Platform",
-                                   choices=["Spotify", "Youtube", "Both"],
-                                   selected="Both"),
-            width=300,
+            ui.br(),
+
+            ui.output_plot("scatter_plot", height="800px"),
+
+            ui.br(),
+
+            ui.column(12, ui.card(ui.h4("Top 5 Songs"), ui.output_data_frame("top_5"))),
         ),
-
-        ui.row(
-            ui.column(4, ui.value_box(title="Avg. Stream",
-                                      value=ui.output_ui("card_avg_stream"))),
-            ui.column(4, ui.value_box(title="Avg. Likes",
-                                      value=ui.output_ui("card_avg_likes"))),
-            ui.column(4, ui.value_box(title="Avg. Views",
-                                      value=ui.output_text("card_avg_views"))),
-        ),
-
-        ui.br(),
-
-        ui.output_plot("scatter_plot", height="800px"),
-
-        ui.br(),
-
-        ui.column(12, ui.card(ui.h4("Top 5 Songs"), ui.output_data_frame("top_5"))),
     ),
+
+    ui.nav_panel("AI Assistant",
+    ui.page_sidebar(
+        qc.sidebar(),
+        ui.card(
+            ui.card_header("Filtered Chartify Data"),
+            ui.output_data_frame("queried_df_tbl")
+        ),
+        ui.layout_columns(ui.download_button("export_queried_df", "Download as CSV")),
+        fillable=True,
+        ),
+    ),
+
+    title="Chartify",
+
+
+    header=ui.tags.style("""
+        @import url('https://fonts.googleapis.com/css2?family=Circular+Std&display=swap');
+
+        * { font-family: 'Circular Std', Helvetica, sans-serif; }
+        body { background-color: #191414; color: white; }
+        .card { background-color: #2a2a2a; border-color: #333333; color: white; }
+        .card h4 { color: white; }
+        .bslib-value-box {
+            background-color: #2a2a2a !important;
+            border: 1px solid #1DB954 !important;
+            color: white !important;
+        }
+        .bslib-value-box .value-box-value,
+        .bslib-value-box .value-box-title,
+        .bslib-value-box p,
+        .bslib-value-box span {
+            color: white !important;
+        }
+        .bslib-value-box .value-box-showcase {
+            background-color: #1DB954 !important;
+            color: white !important;
+        }
+        .form-control { background-color: #2a2a2a; color: white; border-color: #333333; }
+        .form-control::placeholder { color: #888888; }
+
+        /* Table header text */
+        thead th, .shiny-data-grid thead th {
+            color: #000000 !important;
+            background-color: #1DB954 !important;
+        }
+        
+        /* Table hover logic*/
+         .shiny-data-grid tbody tr:hover {
+            background-color: transparent !important;
+        }
+
+        .shiny-data-grid tbody tr:hover td {
+            background-color: inherit !important;
+            color: inherit !important;
+            box-shadow: inset 0 1px 0 #1DB954, inset 0 -1px 0 #1DB954;
+        }                
+                    
+        /* Title */
+        h1 {
+            font-family: 'Circular Std', Helvetica, sans-serif;
+            font-weight: 900;
+            color: white !important;
+            -webkit-text-fill-color: white !important;
+        }
+
+        /* Card green outlines */
+        .card {
+            border: 1px solid #1DB954 !important;
+        }
+        
+        /* Green border on ALL dropdowns/inputs */
+        .form-control, .selectize-input, select.form-control {
+            border: 1px solid #1DB954 !important;
+            background-color: #2a2a2a !important;
+            color: white !important;
+        }
+                    
+        /* Fix dropdown background (the select element itself) */
+        .shiny-input-select select,
+        select {
+            background-color: #2a2a2a !important;
+            color: white !important;
+            border: 1px solid #1DB954 !important;
+        }
+
+    
+        
+        /* Sidebar background */
+        .bslib-sidebar-layout > .sidebar {
+            background-color: #111111 !important;
+                         
+        }
+                                        
+         /* Sidebar collapse toggle */                
+        .bslib-sidebar-layout .collapse-toggle {
+            color: #1DB954 !important;
+            background-color: #111111 !important;
+        }
+                         
+        .bslib-sidebar-layout .collapse-toggle:hover {
+            background-color: #1DB954 !important;
+            color: black !important;
+        }
+        
+        /* Navbar - black background, white text, Spotify font */
+        .navbar {
+            background-color: #000000 !important;
+        }
+
+        .navbar-brand,
+        .navbar .navbar-brand {
+            color: white !important;
+            font-weight: 900 !important;
+            font-size: 1.4rem !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: #b3b3b3 !important;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            color: white !important;
+        }
+
+        /* Active tab underline in green */
+        .navbar-nav .nav-link.active {
+            border-bottom: 2px solid #1DB954 !important;
+        }
+
+        /* Filters h4 white */
+        .sidebar h4 {
+            color: white !important;
+        }
+        .querychat-sidebar::before,
+        .sidebar[data-tab="AI Assistant"]::before {
+            content: "ChartBot";
+            display: block;
+            font-family: 'Circular Std', Helvetica, sans-serif;
+            font-weight: 900;
+            font-size: 1.8rem;
+            color: white;
+            padding: 16px 16px 8px 16px;
+        }
+        .querychat-message.assistant,
+        [class*="querychat"] [class*="assistant"] {
+            background-color: #2a2a2a !important;
+            color: white !important;
+            border: 1px solid #1DB954 !important;
+            border-radius: 12px !important;
+            padding: 10px 14px !important;
+        }
+        
+        /* Chat message bubbles - User */
+        .querychat-message.user,
+        [class*="querychat"] [class*="user"] {
+            background-color: #1DB954 !important;
+            color: black !important;
+            border-radius: 12px !important;
+            padding: 10px 14px !important;
+        }
+
+        /* General text visibility in chat */
+        [class*="querychat"] p,
+        [class*="querychat"] span,
+        [class*="querychat"] div {
+            color: white !important;
+        }
+
+        /* Avatar/icon circle */
+        [class*="querychat"] [class*="avatar"],
+        [class*="querychat"] svg {
+            color: #1DB954 !important;
+            border-color: #1DB954 !important;
+        }
+                         
+        /* SQL query code block */
+        [class*="querychat"] pre,
+        [class*="querychat"] code,
+        .querychat-query-box,
+        pre code {
+            background-color: #1e1e1e !important;
+            color: #1DB954 !important;
+            border: 1px solid #333333 !important;
+            border-radius: 8px !important;
+        }
+
+        /* Apply Filter button */
+        [class*="querychat"] button,
+        .querychat-apply-btn {
+            background-color: transparent !important;
+            color: #1DB954 !important;
+            border: 1px solid #1DB954 !important;
+            border-radius: 8px !important;
+        }
+
+        [class*="querychat"] button:hover {
+            background-color: #1DB954 !important;
+            color: black !important;
+        }
+
+        /* The card/bubble wrapping the query */
+        .querychat-sidebar .card,
+        .querychat-sidebar [class*="card"] {
+            background-color: #2a2a2a !important;
+            border: 1px solid #1DB954 !important;
+            color: white !important;
+        }
+
+        /* Radio button label visibility */
+        .shiny-input-radiogroup label,
+        .control-label,
+        .radio label { color: white !important; }
+    """),
 )
 
 
 def server(input, output, session):
+
+    qc_vals = qc.server()
+    # qc_vals.df(), will give filtered df later
+
+    @reactive.calc
+    def queried_data():
+        return qc_vals.df()
+    
+    @render.data_frame
+    def queried_df_tbl():
+        return queried_data()
+
+    @render.download(filename="chartify_data.csv")
+    def export_queried_df():
+        yield queried_data().to_csv(index=False)
 
     @reactive.calc
     def filtered():

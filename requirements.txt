@@ -9,3 +9,10 @@ jupyter==1.0
 vegafusion==2.0
 pyarrow==23.0
 vl-convert-python==1.9.0
+chatlas==0.15.2
+dotenv==0.9.9
+python-dotenv==1.2.2
+querychat==0.5.1
+shinychat==0.2.9
+anthropic==0.49.0
+
