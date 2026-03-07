@@ -1,3 +1,11 @@
+# [0.3.0] - 2026-03-08
+### Added
+### Changed
+### Fixed
+### Known Issues
+## Reflection
+
+
 # [0.2.0] - 2026-02-28
 ### Added
 
