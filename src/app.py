@@ -108,12 +108,12 @@ app_ui = ui.page_navbar(
             ),
             col_widths=[8, 4]
         ),
+        ui.layout_columns(
+            ui.download_button("export_queried_df", "Download as CSV")
+        ),
         ui.card(
             ui.card_header("Filtered Chartify Data"),
             ui.output_data_frame("queried_df_tbl")
-        ),
-        ui.layout_columns(
-            ui.download_button("export_queried_df", "Download as CSV")
         ),
         fillable=True,
         ),
