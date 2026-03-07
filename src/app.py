@@ -102,7 +102,7 @@ app_ui = ui.page_navbar(
             )),
             ui.column(4, ui.card(
                 ui.card_header("Bar Chart"),
-                ui.output_plot("bar_plot", height="350px")
+                ui.output_plot("bar_plot")
             )),
         ),
         ui.card(
@@ -403,29 +403,55 @@ def server(input, output, session):
     def bar_plot():
         data = queried_data().copy()
         if data.empty or "most_playedon" not in data.columns:
-            fig, ax = plt.subplots(facecolor="#191414")
-            ax.text(0.5, 0.5, "No data to display", ha="center", va="center", color="white")
+            fig, ax = plt.subplots(figsize=(7, 5), facecolor="#191414")
+            ax.text(0.5, 0.5, "No data to display", ha="center", va="center",
+                    color="white", fontsize=13)
             ax.set_facecolor("#191414")
+            ax.axis("off")
             return fig
-        
+
         platform_counts = data["most_playedon"].fillna("Unknown").value_counts()
         platforms = ["Spotify", "Youtube"]
         counts = platform_counts.reindex(platforms, fill_value=0)
 
-        fig, ax = plt.subplots(facecolor="#191414")
-        bars = ax.bar(platforms, counts.values, color=["#1DB954", "#FF4500"], edgecolor="white")
+        fig, ax = plt.subplots(figsize=(7, 5), facecolor="#191414")
+        fig.subplots_adjust(left=0.15, right=0.92, top=0.88, bottom=0.12)
+
+        bars = ax.bar(
+            platforms,
+            counts.values,
+            color=["#1DB954", "#FF4500"],
+            edgecolor="none",
+            width=0.45,
+        )
+
         ax.set_facecolor("#191414")
-        ax.set_title("Songs by Platform", color="white", fontsize=12, pad=12)
-        ax.set_xlabel("Platform", color="white")
-        ax.set_ylabel("Number of Songs", color="white")
-        ax.tick_params(colors="white")
-        for spine in ax.spines.values():
-            spine.set_edgecolor("#1DB954")
+        ax.set_title("Songs by Platform", color="white", fontsize=14,
+                    fontweight="bold", pad=14)
+        ax.set_xlabel("Platform", color="#aaaaaa", fontsize=11, labelpad=8)
+        ax.set_ylabel("Number of Songs", color="#aaaaaa", fontsize=11, labelpad=8)
 
-        max_count = counts.max() if len(counts) > 0 else 0
+        ax.tick_params(axis="both", colors="white", labelsize=11)
+        ax.set_xticks(range(len(platforms)))
+        ax.set_xticklabels(platforms, fontsize=12, color="white")
+
+        for spine in ["top", "right"]:
+            ax.spines[spine].set_visible(False)
+        for spine in ["left", "bottom"]:
+            ax.spines[spine].set_edgecolor("#333333")
+
+        ax.yaxis.set_tick_params(labelcolor="#aaaaaa")
+        ax.set_ylim(0, counts.max() * 1.18 if counts.max() > 0 else 10)
+
         for i, value in enumerate(counts.values):
-            ax.text(i, value + max(1, max_count * 0.02), str(value), ha="center", color="white")
+            ax.text(
+                i, value + counts.max() * 0.03,
+                f"{value:,}",
+                ha="center", va="bottom",
+                color="white", fontsize=13, fontweight="bold"
+            )
 
+        ax.set_facecolor("#191414")
         return fig
 
     @output
