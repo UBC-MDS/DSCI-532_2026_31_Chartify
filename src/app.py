@@ -102,7 +102,7 @@ app_ui = ui.page_navbar(
             )),
             ui.column(4, ui.card(
                 ui.card_header("Bar Chart"),
-                ui.p("Bar Chart visualization.")
+                ui.output_plot("bar_plot", height="350px")
             )),
         ),
         ui.card(
@@ -396,6 +396,30 @@ def server(input, output, session):
                     color="white", fontsize=14, fontweight="bold")
         fig.tight_layout(rect=[0, 0, 1, 0.96])  # leave room for suptitle
         plt.subplots_adjust(hspace=0.5, wspace=0.35)
+        return fig
+
+    @output
+    @render.plot
+    def bar_plot():
+        data = queried_data().copy()
+        platform_counts = data["most_playedon"].fillna("Unknown").value_counts()
+        platforms = ["Spotify", "Youtube"]
+        counts = platform_counts.reindex(platforms, fill_value=0)
+
+        fig, ax = plt.subplots(facecolor="#191414")
+        bars = ax.bar(platforms, counts.values, color=["#1DB954", "#FF4500"], edgecolor="white")
+        ax.set_facecolor("#191414")
+        ax.set_title("Songs by Platform", color="white", fontsize=12, pad=12)
+        ax.set_xlabel("Platform", color="white")
+        ax.set_ylabel("Number of Songs", color="white")
+        ax.tick_params(colors="white")
+        for spine in ax.spines.values():
+            spine.set_edgecolor("#1DB954")
+
+        max_count = counts.max() if len(counts) > 0 else 0
+        for i, value in enumerate(counts.values):
+            ax.text(i, value + max(1, max_count * 0.02), str(value), ha="center", color="white")
+
         return fig
 
     @output
