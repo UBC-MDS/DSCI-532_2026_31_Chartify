@@ -2,9 +2,14 @@
 ### Added
 - setup chatbot and new dashboard tab for natural and interactable querying #66 for #62
 - table display for chatbot filtered dataset and a download to csv button #68 for #62
+- bar chart of songs by platform type via filtered chatbot dataset #73 for #62
+- "musical feature distribution" (box plot) via filtered chatbot dataset of average song features #74 for #62
 - collapsible feature/toggle for sidebar in both dashboard and AI assistant tabs #65
+- thematic color styling to the "AI Assistant" tab visuals #75
+
 ### Changed
 - some UI design choices according to feedback: further mentioned in `fixed` below
+- migrated required packages from `‎environment.yml` into `requirements.txt` with a referance to requirements file #71 for #64
 ### Fixed
 - UI table hover, navbar styling, metric card theming #69 for #65
 - modified artist input selection to now be a dropdown #67 for #65
