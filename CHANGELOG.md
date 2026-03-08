@@ -10,8 +10,10 @@
 - modified artist input selection to now be a dropdown #67 for #65
 ### Known Issues
 - X-axis labels on scatter subplots can overlap at smaller window sizes
-- ChartBot chat window lacks dedicated scrollbar, long conversations extend the whole browser window
+- chartBot chat window lacks dedicated scrollbar, long conversations extend the whole browser window
 - filtered Chartify dataframe on LLM tab window extends longer with every subsequent ChartBot query
+- returned queried dataframe has and displays far too many decimal points
+- bar chart title on "AI Assistant" tab may get cut off at some aspect ratios/browser dimensions 
   
 ### Reflection
 At this stage, we have successfully implemented the QueryChat chatbot that has a natural language interface, allowing for a more conversational approach to data exploration. This new feature allows the users to ask complex questions regarding the Spotify dataset such as "show me high energy and danceability songs on Spotify" and see the resulting visualization and table in real-time. We have also successfully addressed Milestone 2's feedback by applying proper theming to the metric cards and fixed the contrast and colors of some elements to improve the accessibility of the interface.
