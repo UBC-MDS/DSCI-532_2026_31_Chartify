@@ -88,11 +88,15 @@ app_ui = ui.page_navbar(
 
             ui.br(),
 
-            output_widget("scatter_plot", height="800px"),
+            output_widget("scatter_plot", height="900px"),
 
             ui.br(),
 
-            ui.column(12, ui.card(ui.h4("Top 5 Songs — click a row to highlight in the scatter plot above"), ui.output_data_frame("top_5"))),
+            ui.column(12, ui.card(
+                ui.h4("Top 5 Songs"),
+                ui.input_action_button("clear_selection", "Clear selection"),
+                ui.output_data_frame("top_5"),
+            )),
         ),
     ),
 
@@ -374,7 +378,7 @@ def server(input, output, session):
         ncols = 3
         nrows = -(-len(features_present) // ncols)
         fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=features_present,
-                            vertical_spacing=0.12, horizontal_spacing=0.08)
+                            vertical_spacing=0.08, horizontal_spacing=0.12)
 
         BRAND_COLORS = [
             "#1DB954", "#FC55FF", "#3FFF00", "#FF7733",
@@ -457,9 +461,11 @@ def server(input, output, session):
             paper_bgcolor="#191414",
             plot_bgcolor="#1e1e1e",
             font=dict(color="white"),
-            margin=dict(t=60),
+            height=280 * nrows,
+            margin=dict(t=80, b=40, l=50, r=50),
+            autosize=True,
         )
-        fig.update_xaxes(tickformat=",.0f", tickprefix="", ticksuffix="M",
+        fig.update_xaxes(tickformat=".2s", tickangle=45, nticks=4,
                         gridcolor="rgba(255,255,255,0.1)", tickfont=dict(color="white"))
         fig.update_yaxes(gridcolor="rgba(255,255,255,0.1)", tickfont=dict(color="white"))
         return fig
@@ -529,6 +535,11 @@ def server(input, output, session):
         df_top5 = df_top5[['Track', 'Album', 'Most Played On', 'Streams']].iloc[:5]
         df_top5["Streams"] = df_top5["Streams"].apply(lambda x: "{:,.0f}".format(x))
         return render.DataGrid(df_top5, selection_mode="row")
+
+    @reactive.Effect
+    @reactive.event(input.clear_selection)
+    async def _():
+        await top_5.update_cell_selection(None)
 
     @output
     @render.text
