@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from shinywidgets import output_widget, render_plotly
 from chatlas import ChatGithub
 import querychat
 from dotenv import load_dotenv
@@ -85,11 +88,11 @@ app_ui = ui.page_navbar(
 
             ui.br(),
 
-            ui.output_plot("scatter_plot", height="800px"),
+            output_widget("scatter_plot", height="800px"),
 
             ui.br(),
 
-            ui.column(12, ui.card(ui.h4("Top 5 Songs"), ui.output_data_frame("top_5"))),
+            ui.column(12, ui.card(ui.h4("Top 5 Songs — click a row to highlight in the scatter plot above"), ui.output_data_frame("top_5"))),
         ),
     ),
 
@@ -352,26 +355,26 @@ def server(input, output, session):
         return filtered_df
 
     @output
-    @render.plot
+    @render_plotly
     def scatter_plot():
         data = filtered().copy()
         metric_label = input.filter_metric()
         metric_col = METRIC_COLUMN_MAP.get(metric_label, "Stream")
 
         if data.empty or metric_col not in data.columns:
-            fig, ax = plt.subplots(facecolor="#191414")
-            ax.text(0.5, 0.5, "No data to display", ha="center", va="center", color="white")
-            ax.set_facecolor("#191414")
+            fig = go.Figure()
+            fig.add_annotation(text="No data to display", xref="paper", yref="paper",
+                               x=0.5, y=0.5, showarrow=False, font=dict(size=16, color="white"))
+            fig.update_layout(template="plotly_dark", paper_bgcolor="#191414", plot_bgcolor="#191414")
             return fig
-
 
         features_present = [f for f in NUMERICAL_FEATURES if f in data.columns]
         data[features_present] = MinMaxScaler().fit_transform(data[features_present])
 
         ncols = 3
         nrows = -(-len(features_present) // ncols)
-        fig, axes = plt.subplots(nrows, ncols, figsize=(15, 4 * nrows), facecolor="#191414")
-        axes = axes.flatten()
+        fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=features_present,
+                            vertical_spacing=0.12, horizontal_spacing=0.08)
 
         BRAND_COLORS = [
             "#1DB954", "#FC55FF", "#3FFF00", "#FF7733",
@@ -379,29 +382,86 @@ def server(input, output, session):
             "#FF4500", "#9B59B6"
         ]
 
+        # Get selected track from Top 5 table (if any row is selected)
+        selected_track = None
+        try:
+            sel = top_5.cell_selection()
+            if sel["type"] == "row" and sel.get("rows"):
+                top5_data = filtered().sort_values(by=["Stream"], ascending=False).head(5)
+                idx = sel["rows"][0]
+                if idx < len(top5_data):
+                    selected_track = top5_data.iloc[idx]["Track"]
+        except Exception:
+            pass
+
         for i, feature in enumerate(features_present):
-            ax = axes[i]
-            ax.set_facecolor("#1e1e1e")
-            plot_data = data[[metric_col, feature]].dropna()
-            ax.scatter(plot_data[metric_col], plot_data[feature],
-                    color=BRAND_COLORS[i % len(BRAND_COLORS)], alpha=0.7, s=60, edgecolors="none")
+            row, col = i // ncols + 1, i % ncols + 1
+            plot_data = data[[metric_col, feature, "Track"]].dropna()
+
+            # Main scatter trace with hover showing song title
+            fig.add_trace(
+                go.Scatter(
+                    x=plot_data[metric_col],
+                    y=plot_data[feature],
+                    mode="markers",
+                    marker=dict(
+                        color=BRAND_COLORS[i % len(BRAND_COLORS)],
+                        size=8,
+                        opacity=0.7,
+                        line=dict(width=0),
+                    ),
+                    customdata=plot_data["Track"],
+                    hovertemplate="<b>%{customdata}</b><br>" + f"{metric_label}: %{{x:,.0f}}<br>{feature}: %{{y:.3f}}<extra></extra>",
+                    name=feature,
+                    showlegend=False,
+                ),
+                row=row, col=col,
+            )
+
+            # Highlight trace for selected track
+            if selected_track is not None:
+                sel_data = plot_data[plot_data["Track"] == selected_track]
+                if not sel_data.empty:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=sel_data[metric_col],
+                            y=sel_data[feature],
+                            mode="markers",
+                            marker=dict(
+                                color="#FFFFFF",
+                                size=14,
+                                opacity=1,
+                                line=dict(color="#1DB954", width=3),
+                                symbol="diamond",
+                            ),
+                            customdata=sel_data["Track"],
+                            hovertemplate="<b>%{customdata}</b> (selected)<br>" + f"{metric_label}: %{{x:,.0f}}<br>{feature}: %{{y:.3f}}<extra></extra>",
+                            showlegend=False,
+                        ),
+                        row=row, col=col,
+                    )
+
+            # Trend line
             m, b = np.polyfit(plot_data[metric_col], plot_data[feature], 1)
             x_line = np.linspace(plot_data[metric_col].min(), plot_data[metric_col].max(), 100)
-            ax.plot(x_line, m * x_line + b, color="white", linewidth=1.2, alpha=0.6)
-            ax.set_title(feature, color="white", fontsize=10, fontweight="bold")
-            ax.set_xlabel(f"{metric_label} (millions)", color="white", fontsize=8)
-            ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x/1e6:.0f}M"))
-            ax.tick_params(colors="white")
-            for spine in ax.spines.values():
-                spine.set_edgecolor("#1DB954")
+            fig.add_trace(
+                go.Scatter(x=x_line, y=m * x_line + b, mode="lines",
+                           line=dict(color="white", width=1.2, dash="dash"),
+                           showlegend=False),
+                row=row, col=col,
+            )
 
-        for j in range(i + 1, len(axes)):
-            axes[j].set_visible(False)
-
-        fig.suptitle(f"Audio Features vs {metric_label}: {input.artist()}",
-                    color="white", fontsize=14, fontweight="bold")
-        fig.tight_layout(rect=[0, 0, 1, 0.96])  # leave room for suptitle
-        plt.subplots_adjust(hspace=0.5, wspace=0.35)
+        fig.update_layout(
+            title=dict(text=f"Audio Features vs {metric_label}: {input.artist()}", font=dict(color="white")),
+            template="plotly_dark",
+            paper_bgcolor="#191414",
+            plot_bgcolor="#1e1e1e",
+            font=dict(color="white"),
+            margin=dict(t=60),
+        )
+        fig.update_xaxes(tickformat=",.0f", tickprefix="", ticksuffix="M",
+                        gridcolor="rgba(255,255,255,0.1)", tickfont=dict(color="white"))
+        fig.update_yaxes(gridcolor="rgba(255,255,255,0.1)", tickfont=dict(color="white"))
         return fig
 
     @output
@@ -464,11 +524,11 @@ def server(input, output, session):
     @render.data_frame
     def top_5():
         df_top5 = filtered()
-        df_top5 = df_top5.sort_values(by=['Stream'], ascending = False)
-        df_top5 = df_top5.rename(columns={"most_playedon":"Most Played On", "Stream":"Streams"})
+        df_top5 = df_top5.sort_values(by=['Stream'], ascending=False)
+        df_top5 = df_top5.rename(columns={"most_playedon": "Most Played On", "Stream": "Streams"})
         df_top5 = df_top5[['Track', 'Album', 'Most Played On', 'Streams']].iloc[:5]
-        df_top5["Streams"] = df_top5["Streams"].apply(lambda x : "{:,.0f}".format(x))
-        return render.DataGrid(df_top5)
+        df_top5["Streams"] = df_top5["Streams"].apply(lambda x: "{:,.0f}".format(x))
+        return render.DataGrid(df_top5, selection_mode="row")
 
     @output
     @render.text
