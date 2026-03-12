@@ -358,7 +358,6 @@ app_ui = ui.page_navbar(
 def server(input, output, session):
 
     qc_vals = qc.server()
-    # qc_vals.df(), will give filtered df later
 
     @reactive.calc
     def queried_data():
@@ -409,7 +408,7 @@ def server(input, output, session):
             "#FF4500", "#9B59B6"
         ]
 
-        # Get selected track from Top 5 table (if any row is selected)
+        # get selected track from Top 5 table 
         selected_track = None
         try:
             sel = top_5.cell_selection()
@@ -425,7 +424,7 @@ def server(input, output, session):
             row, col = i // ncols + 1, i % ncols + 1
             plot_data = data[[metric_col, feature, "Track"]].dropna()
 
-            # Main scatter trace with hover showing song title
+            # Main scatter with hover showing song title
             fig.add_trace(
                 go.Scatter(
                     x=plot_data[metric_col],
@@ -445,7 +444,7 @@ def server(input, output, session):
                 row=row, col=col,
             )
 
-            # Highlight trace for selected track
+            # highlight point for selected track
             if selected_track is not None:
                 sel_data = plot_data[plot_data["Track"] == selected_track]
                 if not sel_data.empty:
@@ -473,13 +472,16 @@ def server(input, output, session):
             x_line = np.linspace(plot_data[metric_col].min(), plot_data[metric_col].max(), 100)
             fig.add_trace(
                 go.Scatter(x=x_line, y=m * x_line + b, mode="lines",
-                           line=dict(color="white", width=1.2, dash="dash"),
+                           line=dict(color="white", width=1.2),
                            showlegend=False),
                 row=row, col=col,
             )
 
         fig.update_layout(
-            title=dict(text=f"Audio Features vs {metric_label}: {input.artist()}", font=dict(color="white")),
+            title=dict(
+                text=f"Audio Features vs {metric_label}: {input.artist()}",
+                font=dict(color="white", family="Circular Std, Helvetica, sans-serif", size=18, weight=900),
+            ),
             template="plotly_dark",
             paper_bgcolor="#191414",
             plot_bgcolor="#1e1e1e",
