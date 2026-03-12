@@ -94,8 +94,8 @@ app_ui = ui.page_navbar(
 
             ui.column(12, ui.card(
                 ui.h4("Top 5 Songs"),
-                ui.input_action_button("clear_selection", "Clear selection"),
                 ui.output_data_frame("top_5"),
+                ui.input_action_button("clear_selection", "Clear selection"),
             )),
         ),
     ),
@@ -170,7 +170,14 @@ app_ui = ui.page_navbar(
             background-color: inherit !important;
             color: inherit !important;
             box-shadow: inset 0 1px 0 #1DB954, inset 0 -1px 0 #1DB954;
-        }                
+        }
+
+        /* Selected row - Spotify green instead of blue */
+        .shiny-data-grid tbody tr[aria-selected=true],
+        .shiny-data-grid tbody tr[aria-selected=true] td {
+            background-color: rgba(29, 185, 84, 0.25) !important;
+            color: white !important;
+        }
                     
         /* Title */
         h1 {
@@ -328,6 +335,22 @@ app_ui = ui.page_navbar(
         .shiny-input-radiogroup label,
         .control-label,
         .radio label { color: white !important; }
+
+        /* Clear selection button - outlined green by default, fully green when clicked */
+        #clear_selection {
+            background-color: transparent !important;
+            color: #1DB954 !important;
+            border: 2px solid #1DB954 !important;
+            border-radius: 8px !important;
+        }
+        #clear_selection:hover {
+            background-color: rgba(29, 185, 84, 0.2) !important;
+            color: #1DB954 !important;
+        }
+        #clear_selection:active {
+            background-color: #1DB954 !important;
+            color: black !important;
+        }
     """),
 )
 
@@ -436,7 +459,7 @@ def server(input, output, session):
                                 size=14,
                                 opacity=1,
                                 line=dict(color="#1DB954", width=3),
-                                symbol="diamond",
+                                symbol="circle",
                             ),
                             customdata=sel_data["Track"],
                             hovertemplate="<b>%{customdata}</b> (selected)<br>" + f"{metric_label}: %{{x:,.0f}}<br>{feature}: %{{y:.3f}}<extra></extra>",
