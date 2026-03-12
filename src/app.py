@@ -88,7 +88,7 @@ app_ui = ui.page_navbar(
 
             ui.br(),
 
-            output_widget("scatter_plot", height="900px"),
+            output_widget("scatter_plot", height="1200px"),
 
             ui.br(),
 
@@ -461,8 +461,8 @@ def server(input, output, session):
             paper_bgcolor="#191414",
             plot_bgcolor="#1e1e1e",
             font=dict(color="white"),
-            height=280 * nrows,
-            margin=dict(t=80, b=40, l=50, r=50),
+            height=320 * nrows,
+            margin=dict(t=80, b=150, l=50, r=50),
             autosize=True,
         )
         fig.update_xaxes(tickformat=".2s", tickangle=45, nticks=4,
