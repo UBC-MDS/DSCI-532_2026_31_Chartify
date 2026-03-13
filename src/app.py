@@ -38,6 +38,19 @@ NUMERICAL_FEATURES = [
     "Valence", "Tempo", "Duration_min",
 ]
 
+FEATURE_DISPLAY_NAMES = {
+    "Duration_min": "Song Length",
+    "Danceability": "Danceability",
+    "Energy": "Energy",
+    "Loudness": "Loudness",
+    "Speechiness": "Speechiness",
+    "Acousticness": "Acousticness",
+    "Instrumentalness": "Instrumentalness",
+    "Liveness": "Liveness",
+    "Valence": "Mood",
+    "Tempo": "Tempo",
+}
+
 
 
 qc = querychat.QueryChat(
@@ -399,7 +412,8 @@ def server(input, output, session):
 
         ncols = 3
         nrows = -(-len(features_present) // ncols)
-        fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=features_present,
+        subplot_titles = [FEATURE_DISPLAY_NAMES.get(f, f) for f in features_present]
+        fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=subplot_titles,
                             vertical_spacing=0.08, horizontal_spacing=0.12)
 
         BRAND_COLORS = [
@@ -437,7 +451,7 @@ def server(input, output, session):
                         line=dict(width=0),
                     ),
                     customdata=plot_data["Track"],
-                    hovertemplate="<b>%{customdata}</b><br>" + f"{metric_label}: %{{x:,.0f}}<br>{feature}: %{{y:.3f}}<extra></extra>",
+                    hovertemplate="<b>%{customdata}</b><br>" + f"{metric_label}: %{{x:,.0f}}<br>{FEATURE_DISPLAY_NAMES.get(feature, feature)}: %{{y:.3f}}<extra></extra>",
                     name=feature,
                     showlegend=False,
                 ),
@@ -461,7 +475,7 @@ def server(input, output, session):
                                 symbol="circle",
                             ),
                             customdata=sel_data["Track"],
-                            hovertemplate="<b>%{customdata}</b> (selected)<br>" + f"{metric_label}: %{{x:,.0f}}<br>{feature}: %{{y:.3f}}<extra></extra>",
+                            hovertemplate="<b>%{customdata}</b> (selected)<br>" + f"{metric_label}: %{{x:,.0f}}<br>{FEATURE_DISPLAY_NAMES.get(feature, feature)}: %{{y:.3f}}<extra></extra>",
                             showlegend=False,
                         ),
                         row=row, col=col,
@@ -620,10 +634,11 @@ def server(input, output, session):
             queried_df_sorted = queried_df[labels]
             fig_box, ax_box = plt.subplots(facecolor="#191414")
             ax_box.set_facecolor("#1e1e1e")
+            tick_labels_display = [FEATURE_DISPLAY_NAMES.get(l, l) for l in labels]
             bplot = ax_box.boxplot(
                 queried_df_sorted, 
                 patch_artist=True,
-                tick_labels=labels,
+                tick_labels=tick_labels_display,
                 orientation='horizontal',
                 **boxplot_style
                 )
