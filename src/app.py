@@ -102,7 +102,7 @@ app_ui = ui.page_navbar(
             ui.br(),
 
             ui.column(12, ui.card(
-                ui.h4("Top 5 Songs"),
+                ui.div(ui.h4("Top 5 Songs"), style="text-align: center;"),
                 ui.output_data_frame("top_5"),
                 ui.input_action_button("clear_selection", "Clear selection"),
             )),
@@ -154,12 +154,14 @@ app_ui = ui.page_navbar(
             background-color: #2a2a2a !important;
             border: 1px solid #1DB954 !important;
             color: white !important;
+            text-align: center !important;
         }
         .bslib-value-box .value-box-value,
         .bslib-value-box .value-box-title,
         .bslib-value-box p,
         .bslib-value-box span {
             color: white !important;
+            text-align: center !important;
         }
         .bslib-value-box .value-box-showcase {
             background-color: #1DB954 !important;
