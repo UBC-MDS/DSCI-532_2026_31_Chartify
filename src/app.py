@@ -101,15 +101,15 @@ app_ui = ui.page_navbar(
 
             ui.br(),
 
-            output_widget("scatter_plot", height="1200px"),
-
-            ui.br(),
-
             ui.column(12, ui.card(
                 ui.h4("Top 5 Songs"),
                 ui.output_data_frame("top_5"),
                 ui.input_action_button("clear_selection", "Clear selection"),
             )),
+
+            ui.br(),
+
+            output_widget("scatter_plot", height="1200px"),
         ),
     ),
 
@@ -495,6 +495,8 @@ def server(input, output, session):
             title=dict(
                 text=f"Audio Features vs {metric_label}: {input.artist()}",
                 font=dict(color="white", family="Circular Std, Helvetica, sans-serif", size=18, weight=900),
+                x=0.5,
+                xanchor="center",
             ),
             template="plotly_dark",
             paper_bgcolor="#191414",
