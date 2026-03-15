@@ -4,23 +4,33 @@
 
 -   <!-- New features, components, tests - one line each. Reference PRs where relevant (e.g. #12). -->
 
+-   Advanced Feature: Option D: Component click event interaction - implemented Plotly click event interactivity on scatterplots and data table (ref #80, #83, source #85, #91) via #95
+
 ### Changed
 
 -   <!-- Spec or design deviations, and motivation. -->
 
 -   <!-- Feedback items you addressed: "Addressed: <item description> (#<prioritization issue>) via #<PR>" -->
 
+-   Addressed: Improved Readability - updated scatterplot feature titles for better readability (ref #80, source #85, #90) via #95
+-   Addressed: Layout Optimization - rearranged graphics on main tab by moving top 5 songs table above the scatterplots (ref #80, source #86) via #95
+-   Addressed: Function Documentation - added function level comments throughout app.py for code clarity (ref #80, source #87) via #95
 -   Addressed: Documentation and Local Setup - resolved environment naming inconsistency and Windows UnicodeDecodeError (ref #80, source #90) via #96
 -   Addressed: Robust Error Handling - implemented plotting logic to prevent SVD convergence errors when there is limited song data (ref #80, source #90) via #96
+-   Addressed: Make AI download button more visible - enhanced contrast of data export button (ref #80, source #86) via #<PR>
 
 ### Fixed
 
 -   <!-- Bugs resolved since M3. -->
 
 -   **Feedback prioritization issue link:** #80
--   Resolved UnicodeDecodeError on Windows by reactivating `pandas_kwargs` in `get_data.py` with latin-1 encoding and zip compression (ref #80, source #90)
--   Fixed environment name mismatch in `environment.yml` to use `chartify` (ref #80, source #90)
-- Resolved "SVD did not converge in Linear Least Squares" in the dashboard by implementing `empty_fig()` in `app.py` to detect low variance in track metrics (ref #80, source #90)
+-   Resolved critical feedback regarding cross-filtering by enabling click event interactivity on the scatterplots and data table (ref #80, #83, source #85, #91)
+-   Resolved non-critical feedback regarding readability for scatterplots by improving feature titles on each subplot (ref #80, source #85, #90)
+-   Fixed non-critical feedback on layout on main tab by rearranging the top 5 songs table to be above the scatterplots for better flow (ref #80, source #86)
+-   Resolved critical feedback regarding the UnicodeDecodeError on Windows by reactivating `pandas_kwargs` in `get_data.py` with latin-1 encoding and zip compression (ref #80, source #90)
+-   Fixed non-critical feedback regarding environment name mismatch in `environment.yml`, changed from `chartify3` to `chartify` (ref #80, source #90)
+-   Resolved critical feedback of "SVD did not converge in Linear Least Squares" in the dashboard by implementing `empty_fig()` in `app.py` to detect low variance in track metrics (ref #80, source #90)
+-   Resolved critical visibility issue with "Download Queried Table as CSV" button by applying custom CSS theme to maintain visual consistency across the dashboard (ref #80, source #86)
 
 ### Known Issues
 
