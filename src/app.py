@@ -409,12 +409,18 @@ def server(input, output, session):
         metric_label = input.filter_metric()
         metric_col = METRIC_COLUMN_MAP.get(metric_label, "Stream")
 
-        if data.empty or metric_col not in data.columns:
+        def empty_fig(message):
             fig = go.Figure()
-            fig.add_annotation(text="No data to display", xref="paper", yref="paper",
+            fig.add_annotation(text=message, xref="paper", yref="paper",
                                x=0.5, y=0.5, showarrow=False, font=dict(size=16, color="white"))
             fig.update_layout(template="plotly_dark", paper_bgcolor="#191414", plot_bgcolor="#191414")
             return fig
+        
+        if data.empty or metric_col not in data.columns:
+            return empty_fig("No data to display")
+        
+        if data[metric_col].nunique() < 2:
+            return empty_fig(f"No {metric_label} data available for {input.artist()}")
 
         features_present = [f for f in NUMERICAL_FEATURES if f in data.columns]
         data[features_present] = MinMaxScaler().fit_transform(data[features_present])

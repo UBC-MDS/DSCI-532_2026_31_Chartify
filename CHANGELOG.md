@@ -11,14 +11,16 @@
 -   <!-- Feedback items you addressed: "Addressed: <item description> (#<prioritization issue>) via #<PR>" -->
 
 -   Addressed: Documentation and Local Setup - resolved environment naming inconsistency and Windows UnicodeDecodeError (ref #80, source #90) via \#<PR>
+- Addressed: Robust Error Handling - implemented plotting logic to prevent SVD convergence errors when there is limited song data (ref #80, source #90) via #<PR>
 
 ### Fixed
 
 -   <!-- Bugs resolved since M3. -->
 
 -   **Feedback prioritization issue link:** #80
-- Resolved UnicodeDecodeError on Windows by reactivate `pandas_kwargs` in `get_data.py` with latin-1 encoding and zip compression (ref #80, source #90)
-- Fixed environment name mismatch in `environment.yml` to use `chartify` (ref #80, source #90)
+-   Resolved UnicodeDecodeError on Windows by reactivating `pandas_kwargs` in `get_data.py` with latin-1 encoding and zip compression (ref #80, source #90)
+-   Fixed environment name mismatch in `environment.yml` to use `chartify` (ref #80, source #90)
+- Resolved "SVD did not converge in Linear Least Squares" in the dashboard by implementing `empty_fig()` in `app.py` to detect low variance in track metrics (ref #80, source #90)
 
 ### Known Issues
 
@@ -69,7 +71,7 @@
 ### Changed
 
 -   some UI design choices according to feedback: further mentioned in `fixed` below
--   migrated required packages from `‎environment.yml` into `requirements.txt` with a referance to requirements file #71 for #64 
+-   migrated required packages from `‎environment.yml` into `requirements.txt` with a referance to requirements file #71 for #64
 
 ### Fixed
 
@@ -116,11 +118,11 @@ Current limitations include the small number of data points per artist which lim
 -   updated requirements.txt #44 #52 #56
 -   instructions for contributions #57
 -   From the original sketch with one scatterplot (and all features graphed on it), changed to using a scatterplot grid for Milestone 2 instead. This is due the the single-plot method not working and/or being unreadable.
--   The layout of the dashboard has changed from milestone 1 -\> 2. It has been significantly minimized due to current time constraints. More information found in the "Layout Changes" section in the Reflection below. 
+-   The layout of the dashboard has changed from milestone 1 -\> 2. It has been significantly minimized due to current time constraints. More information found in the "Layout Changes" section in the Reflection below.
 
 ### Fixed
 
--   update app to shiny format #40 
+-   update app to shiny format #40
 
 ### Known Issues
 
