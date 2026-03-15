@@ -10,8 +10,8 @@
 
 -   <!-- Feedback items you addressed: "Addressed: <item description> (#<prioritization issue>) via #<PR>" -->
 
--   Addressed: Documentation and Local Setup - resolved environment naming inconsistency and Windows UnicodeDecodeError (ref #80, source #90) via \#<PR>
-- Addressed: Robust Error Handling - implemented plotting logic to prevent SVD convergence errors when there is limited song data (ref #80, source #90) via #<PR>
+-   Addressed: Documentation and Local Setup - resolved environment naming inconsistency and Windows UnicodeDecodeError (ref #80, source #90) via #96
+-   Addressed: Robust Error Handling - implemented plotting logic to prevent SVD convergence errors when there is limited song data (ref #80, source #90) via #96
 
 ### Fixed
 
