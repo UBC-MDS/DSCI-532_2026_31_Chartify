@@ -2,6 +2,17 @@ import pandas as pd
  
  
 def filter_data(df: pd.DataFrame, artist_input: str, platform_input: str) -> pd.DataFrame:
+    """
+    Filter a DataFrame by artist name and platform.
+ 
+    Args:
+        df: The source DataFrame containing 'Artist' and 'most_playedon' columns.
+        artist: Artist name to filter by. Given by input_selectize("artist", ...)
+        platform: Platform to filter by. Given by input_radio_buttons where the choices are choices=["Spotify", "Youtube", "Both"]
+ 
+    Returns:
+        A filtered copy of the DataFrame to used as a reactive cal and for other components/outputs.
+    """
     artist = artist_input.strip()
  
     if artist:
