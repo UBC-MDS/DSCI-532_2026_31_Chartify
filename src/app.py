@@ -11,7 +11,15 @@ from chatlas import ChatGithub
 import querychat
 from dotenv import load_dotenv
 
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from df_filter import filter_data
+
 load_dotenv()
+
 
 try:
     from . import get_data as gd
@@ -394,11 +402,9 @@ def server(input, output, session):
     # Filters Dashboard data by artist and platform; used by scatter, Top 5, and metric cards.
     @reactive.calc
     def filtered():
-        artist = input.artist().strip()
-        platform = input.filter_platform()
-        filtered_df = df[df["Artist"].str.lower() == artist.lower()] if artist else df.copy()
-        if platform != "Both":
-            filtered_df = filtered_df[filtered_df["most_playedon"] == platform]
+        filtered_df = filter_data(df = df,
+                            artist_input = input.artist(), 
+                            platform_input = input.filter_platform())
         return filtered_df
 
     # Grid of scatter plots: each audio feature vs selected metric, with trend lines and Top 5 highlight.

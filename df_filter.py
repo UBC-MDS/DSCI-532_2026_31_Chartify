@@ -1,6 +1,5 @@
 import pandas as pd
  
- 
 def filter_data(df: pd.DataFrame, artist_input: str, platform_input: str) -> pd.DataFrame:
     """
     Filter a DataFrame by artist name and platform.
