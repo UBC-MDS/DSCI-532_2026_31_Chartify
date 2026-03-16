@@ -16,3 +16,5 @@ querychat==0.5.1
 shinychat==0.2.9
 plotly==6.6.0
 shinywidgets>=0.3.0
+pytest>=8.0.0
+pytest-playwright>=0.5.0
