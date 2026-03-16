@@ -1,10 +1,10 @@
-## \[0.4.0\] - 2026-03-17
+# \[0.4.0\] - 2026-03-17
 
 ### Added
 
 <!-- New features, components, tests - one line each. Reference PRs where relevant (e.g. #12). -->
 
--   Advanced Feature: Option D: Component click event interaction - implemented Plotly click event interactivity on scatterplots and data table via #95
+-   Advanced Feature: Option D: Component click-event interaction - implemented Plotly click-event interactivity on scatterplots and data table for #83 via #95
 
 ### Changed
 
@@ -12,38 +12,36 @@
 
 <!-- Feedback items you addressed: "Addressed: <item description> (#<prioritization issue>) via #<PR>" -->
 
--   Addressed: Improved Readability (#80) - updated scatterplot feature titles for better readability via #95
--   Addressed: Layout Optimization (#80) - rearranged graphics on main tab by moving top 5 songs table above the scatterplots via #95
--   Addressed: Function Documentation (#80) - added function level comments throughout app.py for code clarity via #95
--   Addressed: Documentation and Local Setup (#80) - resolved environment naming inconsistency and Windows UnicodeDecodeError via #96
--   Addressed: Robust Error Handling (#80) - implemented plotting logic to prevent SVD convergence errors when there is limited song data via #96
--   Addressed: Make AI download button more visible (#80) - enhanced contrast of data export button via #97
+-   Addressed: Improved Readability - updated scatterplot feature titles for better readability for #80 via #95
+-   Addressed: Layout Optimization - rearranged graphics on main tab by moving top 5 songs table above the scatterplots for #80 via #95
+-   Addressed: Function Documentation - added function level comments throughout app.py for code clarity for #80 via #95
+-   Addressed: Documentation and Local Setup - resolved environment naming inconsistency and Windows UnicodeDecodeError for #80 via #96
+-   Addressed: Robust Error Handling - implemented plotting logic to prevent SVD convergence errors when there is limited song data for #80 via #96
+-   Addressed: Make AI download button more visible - enhanced contrast of data export button for #80 via #97
 
 ### Fixed
 
 <!-- Bugs resolved since M3. -->
 
-**Feedback prioritization issue link:** #80
--   Resolved critical feedback regarding cross-filtering by enabling click event interactivity on the scatterplots and data table via #95
--   Resolved non-critical feedback regarding readability for scatterplots by improving feature titles on each subplot via #95
--   Fixed non-critical feedback on layout on main tab by rearranging the top 5 songs table to be above the scatterplots for better flow via #95
--   Resolved critical feedback regarding the UnicodeDecodeError on Windows by reactivating `pandas_kwargs` in `get_data.py` with latin-1 encoding and zip compression via #96
--   Fixed non-critical feedback regarding environment name mismatch in `environment.yml`, changed from `chartify3` to `chartify` via #96
--   Resolved critical feedback of "SVD did not converge in Linear Least Squares" in the dashboard by implementing `empty_fig()` in `app.py` to detect low variance in track metrics via #96
--   Resolved critical visibility issue with "Download Queried Table as CSV" button by applying custom CSS theme to maintain visual consistency across the dashboard via #97
+-   **Feedback prioritization issue link:** #80
+-   Resolved critical feedback regarding cross-filtering by enabling click-event interactivity on the scatterplots and data table for #80 via #95
+-   Resolved non-critical feedback regarding readability for scatterplots by improving feature titles on each subplot for #80 via #95
+-   Fixed non-critical feedback on layout on main tab by rearranging the top 5 songs table to be above the scatterplots for better flow for #80 via #95
+-   Resolved critical feedback regarding the UnicodeDecodeError on Windows by reactivating `pandas_kwargs` in `get_data.py` with latin-1 encoding and zip compression for #80 via #96
+-   Fixed non-critical feedback regarding environment name mismatch in `environment.yml`, changed from `chartify3` to `chartify` for #80 via #96
+-   Resolved critical feedback of "SVD did not converge in Linear Least Squares" in the dashboard by implementing `empty_fig()` in `app.py` to detect low variance in track metrics for #80 via #96
+-   Resolved critical visibility issue with "Download Queried Table as CSV" button by applying custom CSS theme to maintain visual consistency across the dashboard for #80 via #97
 
 ### Known Issues
 
 -   <!-- Anything incomplete or broken TAs should be aware of (so it isn't mistaken for unfinished work). -->
 
-### Release Highlight: \[Name of your advanced feature\]
+### Release Highlight: Scatterplot and Data Table Interactivity
 
-<!-- One short paragraph describing what you built and what it does for the user. -->
-
--   **Option chosen:** A / B / C / D
--   **PR:** #...
--   **Why this option over the others:** <!-- 1–2 sentences; link to your feature prioritization issue -->
--   **Feature prioritization issue link:** #...
+-   **Option chosen:** D
+-   **PR:** #95
+-   **Why this option over the others:** We chose Option D to address peer feedback (#80) regarding the static nature of the dashboard. We implemented two-way interactivity: users can click a song in the "Top 5 Songs" table to highlight its corresponding point in the scatterplots, and they can hover over plot points to see specific song details. This also fulfills the requirement for the advanced component-to-component interaction for #83.
+-   **Feature prioritization issue link:** #83
 
 ### Collaboration
 
@@ -71,22 +69,22 @@
 
 ### Added
 
--   setup chatbot and new dashboard tab for natural and interactable querying #66 for #62
--   table display for chatbot filtered dataset and a download to csv button #68 for #62
--   bar chart of songs by platform type via filtered chatbot dataset #73 for #62
--   "musical feature distribution" (box plot) via filtered chatbot dataset of average song features #74 for #62
--   collapsible feature/toggle for sidebar in both dashboard and AI assistant tabs #65
--   thematic color styling to the "AI Assistant" tab visuals #75
+-   setup chatbot and new dashboard tab for natural and interactable querying for #62 via #66
+-   table display for chatbot filtered dataset and a download to csv button for #62 via #68
+-   bar chart of songs by platform type via filtered chatbot dataset #62 via #73
+-   "musical feature distribution" (box plot) via filtered chatbot dataset of average song features for #62 via #74
+-   collapsible feature/toggle for sidebar in both dashboard and AI assistant tabs #65 via #69
+-   thematic color styling to the "AI Assistant" tab visuals #75 via #69
 
 ### Changed
 
--   some UI design choices according to feedback: further mentioned in `fixed` below
--   migrated required packages from `‎environment.yml` into `requirements.txt` with a referance to requirements file #71 for #64
+-   some UI design choices according to feedback: further mentioned in `fixed` below for #65 via #67 #69
+-   migrated required packages from `‎environment.yml` into `requirements.txt` with a referance to requirements file for #64 via #71
 
 ### Fixed
 
--   UI table hover, navbar styling, metric card theming #69 for #65
--   modified artist input selection to now be a dropdown #67 for #65
+-   UI table hover, navbar styling, metric card theming for #65 via #69
+-   modified artist input selection to now be a dropdown for #65 via #67
 
 ### Known Issues
 
@@ -108,31 +106,31 @@ Current limitations include the small number of data points per artist which lim
 
 ### Added
 
--   App specification `m2_spec.md` file #42 #43
--   Within `m2_spec.md` added component inventory (#48) and mermaid chart #49
--   created `.gitignore` file for extra files created by kagglehub data loaded #44
--   Metrics cards displaying average KPI counts #46 #49
--   Added 2 Posit Connect Cloud links to readme #57
--   Created Chartify brand styling: Spotify green (`#1DB954`) card outlines, table headers, and sidebar border #45
--   Circular Std / Helvetica font applied across the dashboard #45
--   Dark sidebar background (`#111111`) with green border separator #45
--   reactive.cal #44
--   Created dropdown menus to select a metric of interest and an artist #44
--   Clickable choice box to select platform(s) of interest #47
--   Top 5 songs table for artist of choice #55
--   Scatter plot grid showing all audio features vs. selected metric, with line of best fit per subplot #51 #54
+-   App specification `m2_spec.md` file via #42 #43
+-   Within `m2_spec.md` added component inventory via #48 and mermaid chart via #49
+-   created `.gitignore` file for extra files created by kagglehub data loaded via #44
+-   Metrics cards displaying average KPI counts via #46 #49
+-   Added 2 Posit Connect Cloud links to readme via #57
+-   Created Chartify brand styling: Spotify green (`#1DB954`) card outlines, table headers, and sidebar border via #45
+-   Circular Std / Helvetica font applied across the dashboard via #45
+-   Dark sidebar background (`#111111`) with green border separator via #45
+-   reactive.calc via #44
+-   Created dropdown menus to select a metric of interest and an artist via #44
+-   Clickable choice box to select platform(s) of interest via #47
+-   Top 5 songs table for artist of choice via #55
+-   Scatter plot grid showing all audio features vs. selected metric, with line of best fit per subplot via #51 #54
 
 ### Changed
 
--   the data loading process and a get_data.py script #44 #45
--   updated requirements.txt #44 #52 #56
--   instructions for contributions #57
+-   the data loading process and a get_data.py script via #44 #45
+-   updated requirements.txt via #44 #52 #56
+-   instructions for contributions via #57
 -   From the original sketch with one scatterplot (and all features graphed on it), changed to using a scatterplot grid for Milestone 2 instead. This is due the the single-plot method not working and/or being unreadable.
 -   The layout of the dashboard has changed from milestone 1 -\> 2. It has been significantly minimized due to current time constraints. More information found in the "Layout Changes" section in the Reflection below.
 
 ### Fixed
 
--   update app to shiny format #40
+-   update app to shiny format via #40
 
 ### Known Issues
 
@@ -172,11 +170,11 @@ These may or may not be incorporated in further future developments.
 ### Added
 
 -   dataset selection discussion found in issue #1 closed
--   add app description to readme #15 for issue #2
--   populate motivation & purpose in Proposal.md #16 for issue #8
--   create section 3: usage scenarios in proposal doc #17 for issue #10
--   expand proposal with dataset description section #18 for issue #9
--   add section 4 for proposal.md and EDA notebook #19 for issue #12
--   sketch and description #20 for issue #13
--   create a skeleton app script #21 for issue #1 & #11
--   expand install instructions + description.md #22 for issue #2
+-   add app description to readme for issue #2 via #15
+-   populate motivation & purpose in Proposal.md for issue #8 via #16
+-   create section 3: usage scenarios in proposal doc for issue #10 via #17
+-   expand proposal with dataset description section for issue #9 via #18
+-   add section 4 for proposal.md and EDA notebook for issue #12 via #19
+-   sketch and description for issue #13 via #20
+-   create a skeleton app script for issue #1 & #11 via #21
+-   expand install instructions + description.md for issue #2 via #22
