@@ -20,7 +20,7 @@ def get_data():
         "cleaned_dataset.csv", 
         pandas_kwargs={"encoding": "latin-1", "on_bad_lines": "skip", "engine": "python", 
                     #    "compression": "zip"
-                    }
+                       }
         )
 
     

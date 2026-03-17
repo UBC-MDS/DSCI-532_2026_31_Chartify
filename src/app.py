@@ -101,9 +101,9 @@ app_ui = ui.page_navbar(
             # Summary metrics: average streams, likes, and views for the filtered data.
             ui.row(
                 ui.column(4, ui.value_box(title="Average Stream Count",
-                                        value=ui.output_ui("card_avg_stream"))),
+                                        value=ui.output_text("card_avg_stream"))),
                 ui.column(4, ui.value_box(title="Average Like Count",
-                                        value=ui.output_ui("card_avg_likes"))),
+                                        value=ui.output_text("card_avg_likes"))),
                 ui.column(4, ui.value_box(title="Average View Count",
                                         value=ui.output_text("card_avg_views"))),
             ),
@@ -630,14 +630,14 @@ def server(input, output, session):
         return "0"
 
     @output
-    @render.ui
+    @render.text
     def card_avg_stream():
         data = filtered()
         avg = data["Stream"].mean() if (data["Stream"] != 0).any() else 0
         return f"{avg:,.0f}"
 
     @output
-    @render.ui
+    @render.text
     def card_avg_likes():
         data = filtered()
         avg = data["Likes"].mean() if (data["Likes"] != 0).any() else 0
