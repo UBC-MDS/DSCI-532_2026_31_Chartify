@@ -53,6 +53,20 @@
 
 ### Reflection
 
+
+#### Tests Coverage:
+`test_default_metric_cards_are_correct`
+This test covers that the three summary cards — average streams, likes, and views — display the correct values when the dashboard first loads with no filters applied. It simulates a user opening the app for the first time and expecting to see dataset-wide averages. If the default state of `filtered()` ever changes, or the averaging logic in any of the three card render functions is modified, the displayed values would be wrong and this test would catch the break.
+
+`test_platform_spotify_filter_for_top5`
+This test covers that selecting an artist and switching the platform filter to Spotify correctly updates the Top 5 table to show only Spotify songs in the right order with the right values. It simulates a user narrowing down results to a single artist on one platform. If the platform filtering logic stopped excluding YouTube rows, or the table stopped sorting by streams, the wrong songs or wrong platform entries would appear and this test would catch the break.
+
+`test_metric_select_changes_makes_no_unintended_updates`
+This test covers that switching between all four metric options only affects the scatter plot and leaves the Top 5 table and metric cards completely unchanged. It simulates a user exploring different metrics in the scatter plot without expecting anything else on the dashboard to shift. If the metric dropdown were ever accidentally connected to the main data filter, the table and cards would update in ways the user wouldn't expect and this test would catch the break.
+
+`test_scatter_plot_has_traces`
+This test covers that the scatter plot renders all 20 expected traces on default load — one scatter and one trend line per audio feature. It simulates the basic expectation that a user opening the dashboard sees a fully populated plot. If a feature were accidentally removed from `NUMERICAL_FEATURES`, or the trend line generation broke, the plot would render fewer traces than expected and this test would catch the break.
+
 ```{=html}
 <!-- Standard (see General Guidelines): what the dashboard does well, current limitations,
      any intentional deviations from DSCI 531 visualization best practices. -->
