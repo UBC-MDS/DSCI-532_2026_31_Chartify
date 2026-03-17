@@ -17,13 +17,16 @@
 | `input_artist`    | Input         | `ui.input_text()`          | None                              | #1, #2, #3 |
 | `filtered`        | Reactive calc | `@reactive.calc`           | `input_artist`, `filter_platform` | #1, #2, #3 |
 | `card_avg_views`  | Output        | `@render.text`             | `filtered`                        | #2, #3     |
-| `card_avg_stream` | Output        | `@render.ui`               | `filtered`                        | #1, #2     |
-| `card_avg_likes`  | Output        | `@render.ui`               | `filtered`                        | #1, #2     |
+| `card_avg_stream` | Output        | `@render.text`               | `filtered`                      | #1, #2     |
+| `card_avg_likes`  | Output        | `@render.text`               | `filtered`                      | #1, #2     |
 | `top_5`           | Output        | `@render.data_frame`       | `filtered`                        | #2         |
 | `scatter_plot`    | Output        | `@render.plot`             | `filter_metric`, `filtered`       | #3         |
 | `queried_data`    | Reactive calc | `@reactive.calc`           | `qc_vals.df()` (QueryChat state)  | AI Assistant |
 | `queried_df_tbl`  | Output        | `@render.data_frame`       | `queried_data`                    | AI Assistant |
+| `box_plot`        | Output        | `@render.plot`             | `queried_data`                    | AI Assistant |
+| `bar_plot`        | Output        | `@render.plot`             | `queried_data`                    | AI Assistant |
 | `export_queried_df` | Output      | `@render.download`         | `queried_data`                    | AI Assistant |
+
 
 ### 2.3 Reactivity Diagram
 
@@ -42,6 +45,8 @@ flowchart TD
     QC[/user queries/] --> QD{{queried_data}}
     QD --> T2([queried_df_tbl])
     QD --> EXP([export_queried_df])
+    QD --> BOX([box_plot])
+    QD --> BAR([bar_plot])
   end
 ```
 
@@ -102,3 +107,16 @@ flowchart TD
 - **Depends on:** `queried_data`
 - **Transformation:** Provides a CSV download of the queried dataframe. Filename: `chartify_data.csv`.
 - **Consumed by:** "Download Queried Table as CSV" button
+
+**`box_plot`**
+
+- **Depends on:** `queried_data`
+- **Transformation:** Renders a box plot for the musical feature distribution via the queried result set.
+- **Consumed by:** `ui.output_plot` ("Musical Feature Distribution")
+
+
+**`bar_plot`**
+
+- **Depends on:** `queried_data`
+- **Transformation:** Renders a bar chart as a breakdown for how many songs are most played on Youtube Vs Spotify via the queried result set.
+- **Consumed by:** `ui.output_plot` ("Songs by Platform")
