@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 import ibis
-from df_filter import filter_data
+from src.df_filter import filter_data
  
  
 @pytest.fixture
