@@ -27,13 +27,14 @@
 -   Fixed non-critical feedback regarding environment name mismatch in `environment.yml`, changed from `chartify3` to `chartify` for #80 via #96
 -   Resolved critical feedback of "SVD did not converge in Linear Least Squares" in the dashboard by implementing `empty_fig()` in `app.py` to detect low variance in track metrics for #80 via #96
 -   Resolved critical visibility issue with "Download Queried Table as CSV" button by applying custom CSS theme to maintain visual consistency across the dashboard for #80 via #97
-
+-   Resolved ba chart title "Songs by Platform" on "AI Assistant" tab no longer get cut off at some aspect ratios/browser dimensions for #80 & #86 via #102
+  
 ### Known Issues
 
 -   chartBot chat window lacks dedicated scrollbar, long conversations extend the whole browser window
 -   filtered Chartify dataframe on "AI Assistant" tab window extends longer with every subsequent ChartBot query when sidebar is open. When sidebar is closed, dataframe card is at fixed height
 -   returned queried dataframe has and displays far too many decimal points
--   bar chart title "Songs by Platform" on "AI Assistant" tab may get cut off at some aspect ratios/browser dimensions
+
 
 ### Release Highlight: Scatterplot and Data Table Interactivity
 
