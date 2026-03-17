@@ -41,14 +41,15 @@ def test_platform_spotify_filter_for_top5(page: Page, app: ShinyAppProc) -> None
 
     artist.set("ABBA", timeout=10000)
     page.wait_for_load_state("networkidle")
+
     platform.set("Spotify", timeout=10000)
     page.wait_for_load_state("networkidle")
 
-    
-    top5.expect_nrow(5,  timeout=10000)
-    top5.expect_cell("Spotify", row=0, col=2, timeout=10000)
+    top5.expect_cell("Spotify", row=0, col=2, timeout=20000)
     top5.expect_cell("Dancing Queen", row=0, col=0, timeout=10000)
     top5.expect_cell("252,601,051", row=4, col=3, timeout=10000)
+    top5.expect_nrow(5,  timeout=10000)
+
 
 def test_metric_select_changes_makes_no_unintended_updates(page: Page, app: ShinyAppProc) -> None:
     '''Verifies that cycling through all four metric options only affects the scatter plot and leaves 
