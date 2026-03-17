@@ -9,7 +9,8 @@ app = create_app_fixture("src/app.py")
 
 
 def test_default_metric_cards_are_correct(page: Page, app: ShinyAppProc) -> None:
-    '''  Each card should contain the values with $NOT artist upon load.
+    '''Each card should contain the values with $NOT artist upon load.
+    
     If not/failed, something about the original/first load of the Dashboard did not go 
     according to plan.'''
     page.goto(app.url)
@@ -25,8 +26,10 @@ def test_default_metric_cards_are_correct(page: Page, app: ShinyAppProc) -> None
 
 def test_platform_spotify_filter_for_top5(page: Page, app: ShinyAppProc) -> None:
     ''' After filtering Spotify Radio button, there should be only spotify related
-     output within the top 5 dataframe and with expected values. If there isn't this would indicate that something 
-    about the reactive calculation and filtered did not work as expected.'''
+     output within the top 5 dataframe and with expected values. 
+     
+    If there isn't this would indicate that something about the reactive calculation 
+    and filtering did not work as expected.'''
     page.goto(app.url)
 
     platform = controller.InputRadioButtons(page, "filter_platform")
@@ -63,3 +66,22 @@ def test_metric_select_changes_makes_no_unintended_updates(page: Page, app: Shin
         avg_streams.expect_value("112,763,800",  timeout=10000)
         avg_likes.expect_value("274,716",  timeout=10000)
         avg_views.expect_value("11,078,490",  timeout=10000)
+
+        
+def test_scatter_plot_has_traces(page: Page, app: ShinyAppProc) -> None:
+    '''Scatter plot should render 20 traces (10 features × 1 scatter + 1 trend line) on default load.
+    
+    If not/failed, either the Plotly widget failed to mount, a feature was dropped from 
+    NUMERICAL_FEATURES, or the trend line generation in the scatter_plot render function broke.'''
+    #Used Claude and Sonnet 4.6 to write the confirm plotly scatterplot works as intended
+    page.goto(app.url)
+
+    plotly_div = page.locator("#scatter_plot .js-plotly-plot")
+    plotly_div.wait_for(state="visible", timeout=15000)
+
+    # Assert exact trace count: 10 features × (1 scatter + 1 trend line) = 20
+    trace_count = page.eval_on_selector( 
+        "#scatter_plot .js-plotly-plot",
+        "el => el._fullData.length"
+    )
+    assert trace_count == 20
