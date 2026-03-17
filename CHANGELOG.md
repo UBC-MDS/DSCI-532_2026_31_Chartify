@@ -2,7 +2,7 @@
 
 ### Added
 
--   Implemented Parquet and DuckDB data loading for improved performance and lazy-loading capabilities for #83 via #<PR>
+-   Implemented Parquet and DuckDB data loading for improved performance and lazy-loading capabilities for #83 via #104
 -   Advanced Feature: Option D: Component click-event interaction - implemented Plotly click-event interactivity on scatterplots and data table for #83 via #95
 -   Added testing suite of 3 playwright behaviour tests and 1 pytest unit test for filtering logic for #84 via #100 #101
 
@@ -14,7 +14,7 @@
 -   Addressed: Documentation and Local Setup - resolved environment naming inconsistency and Windows UnicodeDecodeError for #80 via #96
 -   Addressed: Robust Error Handling - implemented plotting logic to prevent SVD convergence errors when there is limited song data for #80 via #96
 -   Addressed: Make AI download button more visible - enhanced contrast of data export button for #80 via #97
--   Switched data backend from CSV/Pandas to ibis + DuckDB for database level filtering #83 via #<PR>
+-   Switched data backend from CSV/Pandas to ibis + DuckDB for database level filtering #83 via #104
 -   Spec Docs update: revised specification document m4_spec.md to reflect architectural changes and advanced features for #93 via #<PR>
 
 ### Fixed
