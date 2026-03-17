@@ -60,6 +60,20 @@ FEATURE_DISPLAY_NAMES = {
     "Tempo": "Tempo",
 }
 
+# One-sentence summaries for the audio feature glossary in the sidebar.
+FEATURE_DESCRIPTIONS = {
+    "Danceability": "How suitable a track is for dancing based on tempo, rhythm, and beat strength.",
+    "Energy": "Perceptual intensity and activity; high values feel fast, loud, and noisy.",
+    "Loudness": "Overall loudness of the track in decibels.",
+    "Speechiness": "Presence of spoken words; higher values indicate more speech (e.g. talk show, rap).",
+    "Acousticness": "Confidence that the track is acoustic rather than electric.",
+    "Instrumentalness": "Likelihood the track contains no vocals; higher = more instrumental.",
+    "Liveness": "Presence of an audience or live performance in the recording.",
+    "Valence": "Musical positivity; high = happy/cheerful, low = sad/angry.",
+    "Tempo": "Estimated tempo of the track in beats per minute.",
+    "Duration_min": "Length of the track in minutes.",
+}
+
 # AI chat client for natural-language queries over the dataset; powers the AI Assistant tab.
 qc = querychat.QueryChat(
     df.to_pandas(),
@@ -91,6 +105,22 @@ app_ui = ui.page_navbar(
                 ui.input_radio_buttons("filter_platform", "Platform",
                                     choices=["Spotify", "Youtube", "Both"],
                                     selected="Both"),
+                ui.br(),
+                ui.div(
+                    ui.span("Audio Features", style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #b3b3b3; text-transform: uppercase;"),
+                    style="margin-bottom: 0.5rem;",
+                ),
+                ui.div(
+                    *[
+                        ui.div(
+                            ui.span(FEATURE_DISPLAY_NAMES.get(f, f), style="font-weight: 600; color: #ffffff;"),
+                            ui.span(f": {FEATURE_DESCRIPTIONS[f]}", style="color: #b3b3b3; font-size: 0.8rem;"),
+                            style="margin-bottom: 0.4rem; font-size: 0.8rem; line-height: 1.3;",
+                        )
+                        for f in NUMERICAL_FEATURES
+                    ],
+                    style="max-height: 280px; overflow-y: auto; padding-right: 4px;",
+                ),
                 width=280,
                 open={"desktop": "open", "mobile": "closed"},
             ),
