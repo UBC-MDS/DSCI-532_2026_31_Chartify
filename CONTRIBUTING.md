@@ -6,7 +6,7 @@ Thank you for your interest in Chartify! Please read below to learn how to contr
 
 To install the required packages and run the app locally, copy and paste the following code into your terminal.
 
-``` bash
+```bash
 # After opening a terminal:
 git clone https://github.com/UBC-MDS/DSCI-532_2026_Group_31_Chartify.git
 cd DSCI-532_2026_Group_31_Chartify/
@@ -16,12 +16,13 @@ conda env create -f environment.yml
 # Activate environment
 conda activate chartify
 
-# Optional for Assistant Chat (LLM) tab:
+# Needed for Assistant Chat (LLM) tab:
 # Copy `.env.example` and remove ".example" to be just `.env`.
-# Add the  API key for one of the providers, save and continue the rest of the steps
+# Add the API key (for GITHUB_TOKEN)  save and continue the rest of the steps
 
 # Run draft application locally  
-shiny run --reload --launch-browser src/app.py # → http://127.0.0.1:8050
+shiny run src/app.py # → http://127.0.0.1:8050
+# ctrl + c to exit locked terminal 
 
 # Optional (but suggested): deactivate environment when done
 conda deactivate

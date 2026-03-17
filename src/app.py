@@ -378,6 +378,22 @@ app_ui = ui.page_navbar(
             background-color: #1DB954 !important;
             color: black !important;
         }
+        
+        /* Download Queried Table as CSV button - outlined green by default, fully green when clicked */
+        #export_queried_df {
+            background-color: #2a2a2a !important;
+            color: #1DB954 !important;
+            border: 2px solid #1DB954 !important;
+            border-radius: 8px !important;
+        }
+        #export_queried_df:hover {
+            background-color: rgba(29, 185, 84, 0.2) !important;
+            color: #1DB954 !important;
+        }
+        #export_queried_df:active {
+            background-color: #1DB954 !important;
+            color: black !important;
+        }
     """),
 )
 
