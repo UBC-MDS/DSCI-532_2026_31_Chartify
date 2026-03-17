@@ -133,7 +133,7 @@ app_ui = ui.page_navbar(
                 col_widths=8
             ),
             ui.card(
-                ui.card_header("Bar Chart"),
+                ui.card_header("Songs by Platform"),
                 ui.output_plot("bar_plot"),
                 col_widths=4
             ),
@@ -577,8 +577,6 @@ def server(input, output, session):
         )
 
         ax.set_facecolor("#191414")
-        ax.set_title("Songs by Platform", color="white", fontsize=14,
-                    fontweight="bold", pad=14)
         ax.set_xlabel("Platform", color="#aaaaaa", fontsize=11, labelpad=8)
         ax.set_ylabel("Number of Songs", color="#aaaaaa", fontsize=11, labelpad=8)
 
