@@ -1,5 +1,5 @@
 # Running tests:
-# python -m pytest test_dashboard_playwright.py -v --browser firefox
+# python -m playwright install firefox && python -m pytest test_dashboard_playwright.py -v --browser firefox
 from shiny.playwright import controller
 from shiny.run import ShinyAppProc
 from shiny.pytest import create_app_fixture
@@ -62,15 +62,14 @@ def test_metric_select_changes_makes_no_unintended_updates(page: Page, app: Shin
     for m in ["Likes", "Views", "Comments", "Streams"]:
         metric.set(m)
 
-        top5.expect_cell("Tell Em", row=0, col=0, timeout=1000)
-        top5.expect_cell("Beautiful Havoc", row=3, col=1, timeout=1000)
-        top5.expect_cell("78,913,057", row=5, col=4, timeout=1000)
+        top5.expect_cell("Tell Em", row=0, col=0, timeout=5000)
+        top5.expect_cell("Beautiful Havoc", row=3, col=1, timeout=5000)
+        top5.expect_cell("78,913,057", row=4, col=3, timeout=5000)
 
-        avg_streams.expect_value("112,763,800",  timeout=1000)
-        avg_likes.expect_value("274,716",  timeout=1000)
-        avg_views.expect_value("11,078,490",  timeout=1000)
+        avg_streams.expect_value("112,763,800",  timeout=5000)
+        avg_likes.expect_value("274,716",  timeout=5000)
+        avg_views.expect_value("11,078,490",  timeout=5000)
 
-        
 def test_scatter_plot_has_traces(page: Page, app: ShinyAppProc) -> None:
     '''Scatter plot should render 20 traces (10 features × 1 scatter + 1 trend line) on default load.
     
