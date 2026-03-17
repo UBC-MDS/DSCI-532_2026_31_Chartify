@@ -92,7 +92,11 @@ app_ui = ui.page_navbar(
 
             # Sidebar: artist picker, metric selector, and platform filter.
             ui.sidebar(
-                ui.div(ui.span("Filters", style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #b3b3b3; text-transform: uppercase;"), style="margin-bottom: 1rem;"),
+                ui.div(
+                    ui.span("Filters", class_="spotify-subheader"),
+                    ui.div(ui.span("Select Artist, Metric, and Platform of interest", style="font-size: 0.8rem; color: #727272;"), style="margin-top: 0.25rem;"),
+                    style="margin-bottom: 1rem;",
+                ),
                 ui.input_selectize("artist",
                                "Artist",
                                choices=artists,
@@ -107,7 +111,7 @@ app_ui = ui.page_navbar(
                                     selected="Both"),
                 ui.br(),
                 ui.div(
-                    ui.span("Audio Features", style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #b3b3b3; text-transform: uppercase;"),
+                    ui.span("Audio Features", class_="spotify-subheader"),
                     style="margin-bottom: 0.5rem;",
                 ),
                 ui.div(
@@ -183,17 +187,25 @@ app_ui = ui.page_navbar(
 
     # Spotify web app aesthetic: #121212 main, #181818 cards, #1DB954 accents
     header=ui.tags.style("""
-        @import url('https://fonts.googleapis.com/css2?family=Circular+Std&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Circular+Std&family=DM+Sans:wght@400;500;600;700&display=swap');
 
         * { font-family: 'Circular Std', Helvetica, sans-serif; }
+        .spotify-subheader {
+            font-family: 'DM Sans', 'Circular Std', Helvetica, sans-serif !important;
+            font-size: 0.7rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.15em !important;
+            color: #b3b3b3 !important;
+            text-transform: uppercase !important;
+        }
         body {
             background: linear-gradient(135deg, #121212 0%, #0f1a12 50%, #121212 100%) !important;
             color: #ffffff;
         }
         
-        /* Cards: Spotify section background, subtle border, rounded corners */
+        /* Cards: same gradient as metrics for subtle glass effect */
         .card {
-            background-color: #181818 !important;
+            background: linear-gradient(135deg, #1a231a 0%, #181818 50%, #152018 100%) !important;
             border: 1px solid #282828 !important;
             border-radius: 8px !important;
             color: #ffffff !important;
@@ -248,11 +260,11 @@ app_ui = ui.page_navbar(
             text-transform: uppercase !important;
             border-bottom: 1px solid #333333 !important;
         }
-        /* Top 5 Songs table: Spotify green header */
-        #top_5 thead th,
-        #top_5 .shiny-data-grid thead th,
-        [data-id="top_5"] thead th,
-        [data-id="top_5"] .shiny-data-grid thead th {
+        /* Top 5 Songs & Filtered Chartify Data tables: Spotify green header */
+        #top_5 thead th, #top_5 .shiny-data-grid thead th,
+        [data-id="top_5"] thead th, [data-id="top_5"] .shiny-data-grid thead th,
+        #queried_df_tbl thead th, #queried_df_tbl .shiny-data-grid thead th,
+        [data-id="queried_df_tbl"] thead th, [data-id="queried_df_tbl"] .shiny-data-grid thead th {
             background-color: #1DB954 !important;
             color: #ffffff !important;
             font-family: 'Circular Std', Helvetica, sans-serif !important;
@@ -360,7 +372,7 @@ app_ui = ui.page_navbar(
             color: #000000 !important;
         }
         .querychat-sidebar .card, .querychat-sidebar [class*="card"] {
-            background-color: #181818 !important;
+            background: linear-gradient(135deg, #1a231a 0%, #181818 50%, #152018 100%) !important;
             border: 1px solid #282828 !important;
             color: #ffffff !important;
         }
