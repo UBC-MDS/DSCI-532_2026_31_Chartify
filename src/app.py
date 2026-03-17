@@ -93,7 +93,7 @@ app_ui = ui.page_navbar(
             # Sidebar: artist picker, metric selector, and platform filter.
             ui.sidebar(
                 ui.div(
-                    ui.span("Filters", class_="spotify-subheader"),
+                    ui.span("Filters", style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #b3b3b3; text-transform: uppercase;"),
                     ui.div(ui.span("Select Artist, Metric, and Platform of interest", style="font-size: 0.8rem; color: #727272;"), style="margin-top: 0.25rem;"),
                     style="margin-bottom: 1rem;",
                 ),
@@ -111,7 +111,7 @@ app_ui = ui.page_navbar(
                                     selected="Both"),
                 ui.br(),
                 ui.div(
-                    ui.span("Audio Features", class_="spotify-subheader"),
+                    ui.span("Audio Features", style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #b3b3b3; text-transform: uppercase;"),
                     style="margin-bottom: 0.5rem;",
                 ),
                 ui.div(
@@ -151,7 +151,7 @@ app_ui = ui.page_navbar(
             ui.br(),
 
             # Scatter grid: each subplot shows one audio feature vs selected metric.
-            output_widget("scatter_plot", height="1200px"),
+            output_widget("scatter_plot", height="1600px"),
         ),
     ),
 
@@ -187,17 +187,9 @@ app_ui = ui.page_navbar(
 
     # Spotify web app aesthetic: #121212 main, #181818 cards, #1DB954 accents
     header=ui.tags.style("""
-        @import url('https://fonts.googleapis.com/css2?family=Circular+Std&family=DM+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Circular+Std&display=swap');
 
         * { font-family: 'Circular Std', Helvetica, sans-serif; }
-        .spotify-subheader {
-            font-family: 'DM Sans', 'Circular Std', Helvetica, sans-serif !important;
-            font-size: 0.7rem !important;
-            font-weight: 700 !important;
-            letter-spacing: 0.15em !important;
-            color: #b3b3b3 !important;
-            text-transform: uppercase !important;
-        }
         body {
             background: linear-gradient(135deg, #121212 0%, #0f1a12 50%, #121212 100%) !important;
             color: #ffffff;
@@ -452,7 +444,8 @@ def server(input, output, session):
         nrows = -(-len(features_present) // ncols)
         subplot_titles = [FEATURE_DISPLAY_NAMES.get(f, f) for f in features_present]
         fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=subplot_titles,
-                            vertical_spacing=0.08, horizontal_spacing=0.12)
+                            vertical_spacing=0.1, horizontal_spacing=0.08,
+                            row_heights=[1] * nrows, column_widths=[1] * ncols)
 
         BRAND_COLORS = [
             "#1DB954", "#FC55FF", "#3FFF00", "#FF7733",
@@ -540,8 +533,8 @@ def server(input, output, session):
             paper_bgcolor="#121212",
             plot_bgcolor="#181818",
             font=dict(color="white"),
-            height=320 * nrows,
-            margin=dict(t=80, b=150, l=50, r=50),
+            height=max(400 * nrows, 800),
+            margin=dict(t=80, b=80, l=60, r=60),
             autosize=True,
         )
         fig.update_xaxes(tickformat=".2s", tickangle=45, nticks=4,
