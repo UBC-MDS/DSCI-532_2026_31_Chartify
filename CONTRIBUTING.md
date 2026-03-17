@@ -24,6 +24,11 @@ conda activate chartify
 shiny run src/app.py # → http://127.0.0.1:8050
 # ctrl + c to exit locked terminal 
 
+# To run tests (terminal must be free - see above comment):
+python -m playwright install firefox && python -m pytest
+# first part ensures that playwright has a browser test dashboard
+# second part actually is the command to run tests (conditional to first passing)
+
 # Optional (but suggested): deactivate environment when done
 conda deactivate
 ```
