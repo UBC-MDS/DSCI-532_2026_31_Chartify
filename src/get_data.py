@@ -19,7 +19,7 @@ def get_data():
         "sanjanchaudhari/spotify-dataset/versions/1",
         "cleaned_dataset.csv", 
         pandas_kwargs={"encoding": "latin-1", "on_bad_lines": "skip", "engine": "python", 
-                    #    "compression": "zip"
+                       "compression": "zip"
                        }
         )
 
