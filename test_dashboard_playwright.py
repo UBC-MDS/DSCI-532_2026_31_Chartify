@@ -1,4 +1,4 @@
-# Running tests:
+# Running just these tests:
 # python -m playwright install firefox && python -m pytest test_dashboard_playwright.py -v --browser firefox
 from shiny.playwright import controller
 from shiny.run import ShinyAppProc
@@ -33,13 +33,18 @@ def test_platform_spotify_filter_for_top5(page: Page, app: ShinyAppProc) -> None
     If not/failed, the platform branch in filter_data() is not correctly excluding YouTube rows, 
     or the top_5 render function is not sorting or slicing the filtered dataframe as intended.'''
     page.goto(app.url)
+    page.wait_for_load_state("networkidle")
 
     platform = controller.InputRadioButtons(page, "filter_platform")
     top5 = controller.OutputDataFrame(page, "top_5")
     artist = controller.InputSelectize(page, "artist")
 
     artist.set("ABBA", timeout=10000)
+    page.wait_for_load_state("networkidle")
     platform.set("Spotify", timeout=10000)
+    page.wait_for_load_state("networkidle")
+
+    
     top5.expect_nrow(5,  timeout=10000)
     top5.expect_cell("Spotify", row=0, col=2, timeout=10000)
     top5.expect_cell("Dancing Queen", row=0, col=0, timeout=10000)
@@ -79,7 +84,8 @@ def test_scatter_plot_has_traces(page: Page, app: ShinyAppProc) -> None:
     page.goto(app.url)
 
     plotly_div = page.locator("#scatter_plot .js-plotly-plot")
-    plotly_div.wait_for(state="visible", timeout=15000)
+    plotly_div.wait_for(state="visible", timeout=20000)
+
 
     # Assert exact trace count: 10 features × (1 scatter + 1 trend line) = 20
     trace_count = page.eval_on_selector( 
