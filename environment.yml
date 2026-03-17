@@ -1,4 +1,5 @@
-name: chartify3
+#conda env update --file environment.yml --prune
+name: chartify
 channels:
   - conda-forge
 dependencies:

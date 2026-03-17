@@ -1,27 +1,40 @@
+"""Chartify: A Shiny dashboard for exploring Spotify/YouTube music data with AI-assisted querying."""
 from shiny import App, ui, render, reactive
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from shinywidgets import output_widget, render_plotly
 from chatlas import ChatGithub
 import querychat
 from dotenv import load_dotenv
+import ibis
+import os
+
+#To find clean parquet file
+_HERE = os.path.dirname(os.path.abspath(__file__))
+con = ibis.connect("duckdb://")
+df = con.read_parquet(os.path.join(_HERE, "..", "data", "clean", "spotify_clean.parquet"), table_name="spotify")
+
+try:
+    from src.df_filter import filter_data  # Posit Cloud: runs from project root
+except ModuleNotFoundError:
+    from df_filter import filter_data       # local: runs from src/
 
 load_dotenv()
 
-try:
-    from . import get_data as gd
-except ImportError:
-    import get_data as gd
 
+# Use ibis to Load the Parquet file.
+con = ibis.connect("duckdb://")
+df = con.read_parquet("data/clean/spotify_clean.parquet", table_name="spotify")
 
-# Import the dataset
-df = gd.get_data()
+# Build sorted artist list for the Dashboard filter dropdown.
+artists = df.select('Artist').distinct().order_by('Artist').to_pandas()
+artists = artists.Artist.to_list()
 
-# Create a list of Artist Names for the ui.input_selectize()
-artists = list(df.Artist.unique())
-artists.sort() # Sort the list of artists alphabetically
-
+# Maps UI metric labels to dataframe column names; used by scatter plot and filters.
 METRIC_COLUMN_MAP = {
     "Streams": "Stream",
     "Likes": "Likes",
@@ -29,70 +42,123 @@ METRIC_COLUMN_MAP = {
     "Comments": "Comments",
 }
 
+# Audio features plotted in the scatter grid; MinMaxScaler normalizes them for comparison.
 NUMERICAL_FEATURES = [
     "Danceability", "Energy", "Loudness", "Speechiness",
     "Acousticness", "Instrumentalness", "Liveness",
     "Valence", "Tempo", "Duration_min",
 ]
 
+# Human-readable labels for subplot axes and hover tooltips.
+FEATURE_DISPLAY_NAMES = {
+    "Duration_min": "Song Length",
+    "Danceability": "Danceability",
+    "Energy": "Energy",
+    "Loudness": "Loudness",
+    "Speechiness": "Speechiness",
+    "Acousticness": "Acousticness",
+    "Instrumentalness": "Instrumentalness",
+    "Liveness": "Liveness",
+    "Valence": "Mood",
+    "Tempo": "Tempo",
+}
 
+# One-sentence summaries for the audio feature glossary in the sidebar.
+FEATURE_DESCRIPTIONS = {
+    "Danceability": "How suitable a track is for dancing based on tempo, rhythm, and beat strength.",
+    "Energy": "Perceptual intensity and activity; high values feel fast, loud, and noisy.",
+    "Loudness": "Overall loudness of the track in decibels.",
+    "Speechiness": "Presence of spoken words; higher values indicate more speech (e.g. talk show, rap).",
+    "Acousticness": "Confidence that the track is acoustic rather than electric.",
+    "Instrumentalness": "Likelihood the track contains no vocals; higher = more instrumental.",
+    "Liveness": "Presence of an audience or live performance in the recording.",
+    "Valence": "Musical positivity; high = happy/cheerful, low = sad/angry.",
+    "Tempo": "Estimated tempo of the track in beats per minute.",
+    "Duration_min": "Length of the track in minutes.",
+}
 
+# AI chat client for natural-language queries over the dataset; powers the AI Assistant tab.
 qc = querychat.QueryChat(
-    df,
+    df.to_pandas(),
     "df",
     client=ChatGithub(model="gpt-4o-mini"),  # free tier model
     greeting="Hi! Ask me anything about this music dataset. Try: 'Show me all songs by Drake' or 'Filter to songs with over 100 million streams'",
+    data_description="CRITICAL RULE: You are generating queries for a system that automatically applies a LIMIT. NEVER include a LIMIT clause in your SQL outputs."
 )
 
-
-
+# Main app UI: navbar with Dashboard (filtered scatter + Top 5) and AI Assistant tabs.
 app_ui = ui.page_navbar(
 
     ui.nav_panel("Dashboard",
 
         ui.layout_sidebar(
 
+            # Sidebar: artist picker, metric selector, and platform filter.
             ui.sidebar(
-                ui.h4("Filters", color='white'),
-                ui.input_selectize("artist", 
-                               "Select The Artist's Name", 
-                               choices=artists, 
-                               remove_button=True, 
-                               options=(
-                                   {
-                                        "placeholder": "Enter text"
-                                        }
-                                   )
+                ui.div(
+                    ui.span("Filters", style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #b3b3b3; text-transform: uppercase;"),
+                    ui.div(ui.span("Select Artist, Metric, and Platform of interest", style="font-size: 0.8rem; color: #727272;"), style="margin-top: 0.25rem;"),
+                    style="margin-bottom: 1rem;",
+                ),
+                ui.input_selectize("artist",
+                               "Artist",
+                               choices=artists,
+                               remove_button=True,
+                               options=({"placeholder": "Search artists"}),
                                ),
-                ui.input_select("filter_metric", "Metric of Interest",
+                ui.input_select("filter_metric", "Metric",
                                 choices=["Streams", "Likes", "Views", "Comments"],
                                 selected="Streams"),
                 ui.input_radio_buttons("filter_platform", "Platform",
                                     choices=["Spotify", "Youtube", "Both"],
                                     selected="Both"),
-                width=300,
+                ui.br(),
+                ui.div(
+                    ui.span("Audio Features", style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #b3b3b3; text-transform: uppercase;"),
+                    style="margin-bottom: 0.5rem;",
+                ),
+                ui.div(
+                    *[
+                        ui.div(
+                            ui.span(FEATURE_DISPLAY_NAMES.get(f, f), style="font-weight: 600; color: #ffffff;"),
+                            ui.span(f": {FEATURE_DESCRIPTIONS[f]}", style="color: #b3b3b3; font-size: 0.8rem;"),
+                            style="margin-bottom: 0.4rem; font-size: 0.8rem; line-height: 1.3;",
+                        )
+                        for f in NUMERICAL_FEATURES
+                    ],
+                    style="max-height: 280px; overflow-y: auto; padding-right: 4px;",
+                ),
+                width=280,
                 open={"desktop": "open", "mobile": "closed"},
             ),
 
+            # Summary metrics: streams, likes, views for the filtered data.
             ui.row(
-                ui.column(4, ui.value_box(title="Avg. Stream",
-                                        value=ui.output_ui("card_avg_stream"))),
-                ui.column(4, ui.value_box(title="Avg. Likes",
-                                        value=ui.output_ui("card_avg_likes"))),
-                ui.column(4, ui.value_box(title="Avg. Views",
+                ui.column(4, ui.value_box(title="Streams",
+                                        value=ui.output_text("card_avg_stream"))),
+                ui.column(4, ui.value_box(title="Likes",
+                                        value=ui.output_text("card_avg_likes"))),
+                ui.column(4, ui.value_box(title="Views",
                                         value=ui.output_text("card_avg_views"))),
             ),
 
             ui.br(),
 
-            ui.output_plot("scatter_plot", height="800px"),
+            # Top 5 songs by streams; row selection highlights the track in the scatter plot.
+            ui.column(12, ui.card(
+                ui.div(ui.span("Top 5 Songs", style="font-size: 1.5rem; font-weight: 700;"), style="text-align: center; margin-bottom: 0.5rem;"),
+                ui.output_data_frame("top_5"),
+                ui.div(ui.input_action_button("clear_selection", "Clear selection"), style="margin-top: 0.75rem; display: flex; justify-content: center;"),
+            )),
 
             ui.br(),
 
-            ui.column(12, ui.card(ui.h4("Top 5 Songs"), ui.output_data_frame("top_5"))),
+            # Scatter grid: each subplot shows one audio feature vs selected metric.
+            output_widget("scatter_plot", height="1600px"),
         ),
     ),
 
+    # AI Assistant: chat sidebar, box/bar plots of queried data, and downloadable table.
     ui.nav_panel("AI Assistant",
     ui.page_sidebar(
         qc.sidebar(),
@@ -103,7 +169,7 @@ app_ui = ui.page_navbar(
                 col_widths=8
             ),
             ui.card(
-                ui.card_header("Bar Chart"),
+                ui.card_header("Songs by Platform"),
                 ui.output_plot("bar_plot"),
                 col_widths=4
             ),
@@ -122,218 +188,221 @@ app_ui = ui.page_navbar(
 
     title="Chartify",
 
-
+    # Spotify web app aesthetic: #121212 main, #181818 cards, #1DB954 accents
     header=ui.tags.style("""
         @import url('https://fonts.googleapis.com/css2?family=Circular+Std&display=swap');
 
         * { font-family: 'Circular Std', Helvetica, sans-serif; }
-        body { background-color: #191414; color: white; }
-        .card { background-color: #2a2a2a; border-color: #333333; color: white; }
-        .card h4 { color: white; }
+        body {
+            background: linear-gradient(135deg, #121212 0%, #0f1a12 50%, #121212 100%) !important;
+            color: #ffffff;
+        }
+        
+        /* Cards: same gradient as metrics for subtle glass effect */
+        .card {
+            background: linear-gradient(135deg, #1a231a 0%, #181818 50%, #152018 100%) !important;
+            border: 1px solid #282828 !important;
+            border-radius: 8px !important;
+            color: #ffffff !important;
+        }
+        .card h4, .card-header { color: #ffffff !important; }
+        
+        /* Value boxes: subtle green gradient, no accent bar */
         .bslib-value-box {
-            background-color: #2a2a2a !important;
-            border: 1px solid #1DB954 !important;
-            color: white !important;
+            background: linear-gradient(135deg, #1a231a 0%, #181818 50%, #152018 100%) !important;
+            border: 1px solid #282828 !important;
+            border-radius: 8px !important;
+            color: #ffffff !important;
+            text-align: center !important;
         }
         .bslib-value-box .value-box-value,
         .bslib-value-box .value-box-title,
         .bslib-value-box p,
         .bslib-value-box span {
-            color: white !important;
+            color: #ffffff !important;
+            text-align: center !important;
         }
         .bslib-value-box .value-box-showcase {
-            background-color: #1DB954 !important;
-            color: white !important;
-        }
-        .form-control { background-color: #2a2a2a; color: white; border-color: #333333; }
-        .form-control::placeholder { color: #888888; }
-
-        /* Table header text */
-        thead th, .shiny-data-grid thead th {
-            color: #000000 !important;
-            background-color: #1DB954 !important;
+            background-color: transparent !important;
+            color: #1DB954 !important;
         }
         
-        /* Table hover logic*/
-         .shiny-data-grid tbody tr:hover {
-            background-color: transparent !important;
+        /* Inputs: subtle dark background, green on focus */
+        .form-control, .selectize-input, select.form-control {
+            background-color: #282828 !important;
+            color: #ffffff !important;
+            border: 1px solid #333333 !important;
+            border-radius: 4px !important;
+        }
+        .form-control:focus, .selectize-input.focus {
+            border-color: #1DB954 !important;
+            box-shadow: 0 0 0 1px #1DB954 !important;
+        }
+        .form-control::placeholder { color: #727272; }
+        .shiny-input-select select, select {
+            background-color: #282828 !important;
+            color: #ffffff !important;
+            border: 1px solid #333333 !important;
         }
 
+        /* Table: minimal Spotify-style, subtle header */
+        thead th, .shiny-data-grid thead th {
+            color: #b3b3b3 !important;
+            background-color: #282828 !important;
+            font-weight: 600 !important;
+            font-size: 0.75rem !important;
+            letter-spacing: 0.05em !important;
+            text-transform: uppercase !important;
+            border-bottom: 1px solid #333333 !important;
+        }
+        /* Top 5 Songs & Filtered Chartify Data tables: Spotify green header */
+        #top_5 thead th, #top_5 .shiny-data-grid thead th,
+        [data-id="top_5"] thead th, [data-id="top_5"] .shiny-data-grid thead th,
+        #queried_df_tbl thead th, #queried_df_tbl .shiny-data-grid thead th,
+        [data-id="queried_df_tbl"] thead th, [data-id="queried_df_tbl"] .shiny-data-grid thead th {
+            background-color: #1DB954 !important;
+            color: #ffffff !important;
+            font-family: 'Circular Std', Helvetica, sans-serif !important;
+            font-weight: 700 !important;
+        }
+        .shiny-data-grid tbody tr {
+            background-color: #181818 !important;
+        }
         .shiny-data-grid tbody tr:hover td {
-            background-color: inherit !important;
-            color: inherit !important;
-            box-shadow: inset 0 1px 0 #1DB954, inset 0 -1px 0 #1DB954;
-        }                
-                    
-        /* Title */
+            background-color: #282828 !important;
+            color: #ffffff !important;
+        }
+        .shiny-data-grid tbody tr[aria-selected=true],
+        .shiny-data-grid tbody tr[aria-selected=true] td {
+            background-color: rgba(29, 185, 84, 0.15) !important;
+            color: #ffffff !important;
+        }
+
         h1 {
             font-family: 'Circular Std', Helvetica, sans-serif;
-            font-weight: 900;
-            color: white !important;
-            -webkit-text-fill-color: white !important;
+            font-weight: 700;
+            color: #ffffff !important;
         }
 
-        /* Card green outlines */
-        .card {
-            border: 1px solid #1DB954 !important;
-        }
-        
-        /* Green border on ALL dropdowns/inputs */
-        .form-control, .selectize-input, select.form-control {
-            border: 1px solid #1DB954 !important;
-            background-color: #2a2a2a !important;
-            color: white !important;
-        }
-                    
-        /* Fix dropdown background (the select element itself) */
-        .shiny-input-select select,
-        select {
-            background-color: #2a2a2a !important;
-            color: white !important;
-            border: 1px solid #1DB954 !important;
-        }
-
-    
-        
-        /* Sidebar background */
+        /* Sidebar: black like Spotify left nav */
         .bslib-sidebar-layout > .sidebar {
-            background-color: #111111 !important;
-                         
-        }
-                                        
-         /* Sidebar collapse toggle */                
-        .bslib-sidebar-layout .collapse-toggle {
-            color: #1DB954 !important;
-            background-color: #111111 !important;
-        }
-                         
-        .bslib-sidebar-layout .collapse-toggle:hover {
-            background-color: #1DB954 !important;
-            color: black !important;
-        }
-        
-        /* Navbar - black background, white text, Spotify font */
-        .navbar {
             background-color: #000000 !important;
         }
-
-        .navbar-brand,
-        .navbar .navbar-brand {
-            color: white !important;
-            font-weight: 900 !important;
-            font-size: 1.4rem !important;
+        .bslib-sidebar-layout .collapse-toggle {
+            color: #b3b3b3 !important;
+            background-color: #000000 !important;
+        }
+        .bslib-sidebar-layout .collapse-toggle:hover {
+            color: #1DB954 !important;
         }
 
+        /* Navbar: black, minimal */
+        .navbar {
+            background-color: #000000 !important;
+            border-bottom: 1px solid #282828 !important;
+        }
+        .navbar-brand, .navbar .navbar-brand {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            font-size: 1.25rem !important;
+        }
         .navbar-nav .nav-link {
             color: #b3b3b3 !important;
+            font-size: 0.9rem !important;
         }
-
-        .navbar-nav .nav-link:hover,
-        .navbar-nav .nav-link.active {
-            color: white !important;
+        .navbar-nav .nav-link:hover {
+            color: #ffffff !important;
         }
-
-        /* Active tab underline in green */
         .navbar-nav .nav-link.active {
+            color: #ffffff !important;
             border-bottom: 2px solid #1DB954 !important;
-        }
-
-        /* Filters h4 white */
-        .sidebar h4 {
-            color: white !important;
         }
         .querychat-sidebar::before,
         .sidebar[data-tab="AI Assistant"]::before {
             content: "ChartBot";
             display: block;
             font-family: 'Circular Std', Helvetica, sans-serif;
-            font-weight: 900;
-            font-size: 1.8rem;
-            color: white;
-            padding: 16px 16px 8px 16px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #ffffff;
+            padding: 16px 16px 12px 16px;
         }
         .querychat-message.assistant,
         [class*="querychat"] [class*="assistant"] {
-            background-color: #2a2a2a !important;
-            color: white !important;
-            border: 1px solid #1DB954 !important;
-            border-radius: 12px !important;
+            background-color: #282828 !important;
+            color: #ffffff !important;
+            border: 1px solid #333333 !important;
+            border-radius: 8px !important;
             padding: 10px 14px !important;
         }
-        
-        /* Chat message bubbles - User */
         .querychat-message.user,
         [class*="querychat"] [class*="user"] {
             background-color: #1DB954 !important;
-            color: black !important;
-            border-radius: 12px !important;
+            color: #000000 !important;
+            border-radius: 8px !important;
             padding: 10px 14px !important;
         }
-
-        /* General text visibility in chat */
-        [class*="querychat"] p,
-        [class*="querychat"] span,
-        [class*="querychat"] div {
-            color: white !important;
+        [class*="querychat"] p, [class*="querychat"] span, [class*="querychat"] div {
+            color: #ffffff !important;
         }
-
-        /* Avatar/icon circle */
         [class*="querychat"] [class*="avatar"],
         [class*="querychat"] svg {
             color: #1DB954 !important;
-            border-color: #1DB954 !important;
         }
-                         
-        /* SQL query code block */
-        [class*="querychat"] pre,
-        [class*="querychat"] code,
-        .querychat-query-box,
-        pre code {
-            background-color: #1e1e1e !important;
+        [class*="querychat"] pre, [class*="querychat"] code,
+        .querychat-query-box, pre code {
+            background-color: #181818 !important;
             color: #1DB954 !important;
             border: 1px solid #333333 !important;
-            border-radius: 8px !important;
+            border-radius: 6px !important;
         }
-
-        /* Apply Filter button */
-        [class*="querychat"] button,
-        .querychat-apply-btn {
+        [class*="querychat"] button, .querychat-apply-btn {
             background-color: transparent !important;
             color: #1DB954 !important;
             border: 1px solid #1DB954 !important;
-            border-radius: 8px !important;
+            border-radius: 20px !important;
         }
-
         [class*="querychat"] button:hover {
             background-color: #1DB954 !important;
-            color: black !important;
+            color: #000000 !important;
+        }
+        .querychat-sidebar .card, .querychat-sidebar [class*="card"] {
+            background: linear-gradient(135deg, #1a231a 0%, #181818 50%, #152018 100%) !important;
+            border: 1px solid #282828 !important;
+            color: #ffffff !important;
         }
 
-        /* The card/bubble wrapping the query */
-        .querychat-sidebar .card,
-        .querychat-sidebar [class*="card"] {
-            background-color: #2a2a2a !important;
+        .shiny-input-radiogroup label, .control-label, .radio label {
+            color: #b3b3b3 !important;
+        }
+
+        /* Buttons: Spotify pill style, green accent */
+        #clear_selection, #export_queried_df {
+            background-color: transparent !important;
+            color: #1DB954 !important;
             border: 1px solid #1DB954 !important;
-            color: white !important;
+            border-radius: 20px !important;
+            font-weight: 600 !important;
         }
-
-        /* Radio button label visibility */
-        .shiny-input-radiogroup label,
-        .control-label,
-        .radio label { color: white !important; }
+        #clear_selection:hover, #export_queried_df:hover {
+            background-color: #1DB954 !important;
+            color: #000000 !important;
+        }
     """),
 )
 
 
 def server(input, output, session):
-
+    """Server logic: reactive data, Dashboard outputs, and AI Assistant integration."""
     qc_vals = qc.server()
-    # qc_vals.df(), will give filtered df later
 
+    # Reactive dataframe from AI chat; drives the queried table, plots, and CSV export.
     @reactive.calc
     def queried_data():
-        return qc_vals.df()
-    
+        queried_df = qc_vals.df()
+        queried_df[NUMERICAL_FEATURES] = MinMaxScaler().fit_transform(queried_df[NUMERICAL_FEATURES])
+        return queried_df
+
     @render.data_frame
     def queried_df_tbl():
         return queried_data()
@@ -342,36 +411,44 @@ def server(input, output, session):
     def export_queried_df():
         yield queried_data().to_csv(index=False)
 
+    # Filters Dashboard data by artist and platform; used by scatter, Top 5, and metric cards.
     @reactive.calc
     def filtered():
-        artist = input.artist().strip()
-        platform = input.filter_platform()
-        filtered_df = df[df["Artist"].str.lower() == artist.lower()] if artist else df.copy()
-        if platform != "Both":
-            filtered_df = filtered_df[filtered_df["most_playedon"] == platform]
+        filtered_df = filter_data(df = df,
+                            artist_input = input.artist(), 
+                            platform_input = input.filter_platform())
         return filtered_df
 
+    # Grid of scatter plots: each audio feature vs selected metric, with trend lines and Top 5 highlight.
     @output
-    @render.plot
+    @render_plotly
     def scatter_plot():
         data = filtered().copy()
         metric_label = input.filter_metric()
         metric_col = METRIC_COLUMN_MAP.get(metric_label, "Stream")
 
-        if data.empty or metric_col not in data.columns:
-            fig, ax = plt.subplots(facecolor="#191414")
-            ax.text(0.5, 0.5, "No data to display", ha="center", va="center", color="white")
-            ax.set_facecolor("#191414")
+        def empty_fig(message):
+            fig = go.Figure()
+            fig.add_annotation(text=message, xref="paper", yref="paper",
+                               x=0.5, y=0.5, showarrow=False, font=dict(size=16, color="white"))
+            fig.update_layout(template="plotly_dark", paper_bgcolor="#121212", plot_bgcolor="#121212")
             return fig
-
+        
+        if data.empty or metric_col not in data.columns:
+            return empty_fig("No data to display")
+        
+        if data[metric_col].nunique() < 2:
+            return empty_fig(f"No {metric_label} data available for {input.artist()}")
 
         features_present = [f for f in NUMERICAL_FEATURES if f in data.columns]
         data[features_present] = MinMaxScaler().fit_transform(data[features_present])
 
         ncols = 3
         nrows = -(-len(features_present) // ncols)
-        fig, axes = plt.subplots(nrows, ncols, figsize=(15, 4 * nrows), facecolor="#191414")
-        axes = axes.flatten()
+        subplot_titles = [FEATURE_DISPLAY_NAMES.get(f, f) for f in features_present]
+        fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=subplot_titles,
+                            vertical_spacing=0.1, horizontal_spacing=0.08,
+                            row_heights=[1] * nrows, column_widths=[1] * ncols)
 
         BRAND_COLORS = [
             "#1DB954", "#FC55FF", "#3FFF00", "#FF7733",
@@ -379,40 +456,105 @@ def server(input, output, session):
             "#FF4500", "#9B59B6"
         ]
 
+        # get selected track from Top 5 table 
+        selected_track = None
+        try:
+            sel = top_5.cell_selection()
+            if sel["type"] == "row" and sel.get("rows"):
+                top5_data = filtered().sort_values(by=["Stream"], ascending=False).head(5)
+                idx = sel["rows"][0]
+                if idx < len(top5_data):
+                    selected_track = top5_data.iloc[idx]["Track"]
+        except Exception:
+            pass
+
         for i, feature in enumerate(features_present):
-            ax = axes[i]
-            ax.set_facecolor("#1e1e1e")
-            plot_data = data[[metric_col, feature]].dropna()
-            ax.scatter(plot_data[metric_col], plot_data[feature],
-                    color=BRAND_COLORS[i % len(BRAND_COLORS)], alpha=0.7, s=60, edgecolors="none")
+            row, col = i // ncols + 1, i % ncols + 1
+            plot_data = data[[metric_col, feature, "Track"]].dropna()
+
+            # Main scatter with hover showing song title
+            fig.add_trace(
+                go.Scatter(
+                    x=plot_data[metric_col],
+                    y=plot_data[feature],
+                    mode="markers",
+                    marker=dict(
+                        color=BRAND_COLORS[i % len(BRAND_COLORS)],
+                        size=8,
+                        opacity=0.7,
+                        line=dict(width=0),
+                    ),
+                    customdata=plot_data["Track"],
+                    hovertemplate="<b>%{customdata}</b><br>" + f"{metric_label}: %{{x:,.0f}}<br>{FEATURE_DISPLAY_NAMES.get(feature, feature)}: %{{y:.3f}}<extra></extra>",
+                    name=feature,
+                    showlegend=False,
+                ),
+                row=row, col=col,
+            )
+
+            # highlight point for selected track
+            if selected_track is not None:
+                sel_data = plot_data[plot_data["Track"] == selected_track]
+                if not sel_data.empty:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=sel_data[metric_col],
+                            y=sel_data[feature],
+                            mode="markers",
+                            marker=dict(
+                                color="#FFFFFF",
+                                size=14,
+                                opacity=1,
+                                line=dict(color="#1DB954", width=3),
+                                symbol="circle",
+                            ),
+                            customdata=sel_data["Track"],
+                            hovertemplate="<b>%{customdata}</b> (selected)<br>" + f"{metric_label}: %{{x:,.0f}}<br>{FEATURE_DISPLAY_NAMES.get(feature, feature)}: %{{y:.3f}}<extra></extra>",
+                            showlegend=False,
+                        ),
+                        row=row, col=col,
+                    )
+
+            # Trend line
             m, b = np.polyfit(plot_data[metric_col], plot_data[feature], 1)
             x_line = np.linspace(plot_data[metric_col].min(), plot_data[metric_col].max(), 100)
-            ax.plot(x_line, m * x_line + b, color="white", linewidth=1.2, alpha=0.6)
-            ax.set_title(feature, color="white", fontsize=10, fontweight="bold")
-            ax.set_xlabel(f"{metric_label} (millions)", color="white", fontsize=8)
-            ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x/1e6:.0f}M"))
-            ax.tick_params(colors="white")
-            for spine in ax.spines.values():
-                spine.set_edgecolor("#1DB954")
+            fig.add_trace(
+                go.Scatter(x=x_line, y=m * x_line + b, mode="lines",
+                           line=dict(color="white", width=1.2),
+                           showlegend=False),
+                row=row, col=col,
+            )
 
-        for j in range(i + 1, len(axes)):
-            axes[j].set_visible(False)
-
-        fig.suptitle(f"Audio Features vs {metric_label}: {input.artist()}",
-                    color="white", fontsize=14, fontweight="bold")
-        fig.tight_layout(rect=[0, 0, 1, 0.96])  # leave room for suptitle
-        plt.subplots_adjust(hspace=0.5, wspace=0.35)
+        fig.update_layout(
+            title=dict(
+                text=f"Audio Features vs {metric_label}: {input.artist()}",
+                font=dict(color="white", family="Circular Std, Helvetica, sans-serif", size=18, weight=900),
+                x=0.5,
+                xanchor="center",
+            ),
+            template="plotly_dark",
+            paper_bgcolor="#121212",
+            plot_bgcolor="#181818",
+            font=dict(color="white"),
+            height=max(400 * nrows, 800),
+            margin=dict(t=80, b=80, l=60, r=60),
+            autosize=True,
+        )
+        fig.update_xaxes(tickformat=".2s", tickangle=45, nticks=4,
+                        gridcolor="rgba(255,255,255,0.1)", tickfont=dict(color="white"))
+        fig.update_yaxes(gridcolor="rgba(255,255,255,0.1)", tickfont=dict(color="white"))
         return fig
 
+    # Bar chart of song counts by platform (Spotify vs YouTube) for the AI-queried data.
     @output
     @render.plot
     def bar_plot():
         data = queried_data().copy()
         if data.empty or "most_playedon" not in data.columns:
-            fig, ax = plt.subplots(figsize=(7, 5), facecolor="#191414")
+            fig, ax = plt.subplots(figsize=(7, 5), facecolor="#121212")
             ax.text(0.5, 0.5, "No data to display", ha="center", va="center",
                     color="white", fontsize=13)
-            ax.set_facecolor("#191414")
+            ax.set_facecolor("#121212")
             ax.axis("off")
             return fig
 
@@ -420,7 +562,7 @@ def server(input, output, session):
         platforms = ["Spotify", "Youtube"]
         counts = platform_counts.reindex(platforms, fill_value=0)
 
-        fig, ax = plt.subplots(figsize=(7, 5), facecolor="#191414")
+        fig, ax = plt.subplots(figsize=(7, 5), facecolor="#121212")
         fig.subplots_adjust(left=0.15, right=0.92, top=0.88, bottom=0.12)
 
         bars = ax.bar(
@@ -431,9 +573,7 @@ def server(input, output, session):
             width=0.45,
         )
 
-        ax.set_facecolor("#191414")
-        ax.set_title("Songs by Platform", color="white", fontsize=14,
-                    fontweight="bold", pad=14)
+        ax.set_facecolor("#121212")
         ax.set_xlabel("Platform", color="#aaaaaa", fontsize=11, labelpad=8)
         ax.set_ylabel("Number of Songs", color="#aaaaaa", fontsize=11, labelpad=8)
 
@@ -457,19 +597,27 @@ def server(input, output, session):
                 color="white", fontsize=13, fontweight="bold"
             )
 
-        ax.set_facecolor("#191414")
+        ax.set_facecolor("#121212")
         return fig
 
+    # Top 5 songs by streams for filtered data; row selection syncs with scatter plot highlight.
     @output
     @render.data_frame
     def top_5():
         df_top5 = filtered()
-        df_top5 = df_top5.sort_values(by=['Stream'], ascending = False)
-        df_top5 = df_top5.rename(columns={"most_playedon":"Most Played On", "Stream":"Streams"})
+        df_top5 = df_top5.sort_values(by=['Stream'], ascending=False)
+        df_top5 = df_top5.rename(columns={"most_playedon": "Most Played On", "Stream": "Streams"})
         df_top5 = df_top5[['Track', 'Album', 'Most Played On', 'Streams']].iloc[:5]
-        df_top5["Streams"] = df_top5["Streams"].apply(lambda x : "{:,.0f}".format(x))
-        return render.DataGrid(df_top5)
+        df_top5["Streams"] = df_top5["Streams"].apply(lambda x: "{:,.0f}".format(x))
+        return render.DataGrid(df_top5, selection_mode="row")
 
+    # Clears the Top 5 table selection when the user clicks "Clear selection".
+    @reactive.Effect
+    @reactive.event(input.clear_selection)
+    async def _():
+        await top_5.update_cell_selection(None)
+
+    # Metric cards: average views, streams, and likes for the filtered Dashboard data.
     @output
     @render.text
     def card_avg_views():
@@ -479,19 +627,20 @@ def server(input, output, session):
         return "0"
 
     @output
-    @render.ui
+    @render.text
     def card_avg_stream():
         data = filtered()
         avg = data["Stream"].mean() if (data["Stream"] != 0).any() else 0
         return f"{avg:,.0f}"
 
     @output
-    @render.ui
+    @render.text
     def card_avg_likes():
         data = filtered()
         avg = data["Likes"].mean() if (data["Likes"] != 0).any() else 0
         return f"{avg:,.0f}"
     
+    # Horizontal boxplot of audio features for the AI-queried data.
     @output
     @render.plot
     def box_plot():
@@ -513,21 +662,22 @@ def server(input, output, session):
         color_pairs = dict(zip(song_feature, BRAND_COLORS))
         sorted_color_pairs = {k:v for k, v in sorted(color_pairs.items(), key=lambda item:item[0])}
         if queried_df.empty: # if the AI query returns an empty dataframe populate a No Data To Display Plot.
-            fig, ax = plt.subplots(facecolor="#191414")
+            fig, ax = plt.subplots(facecolor="#121212")
             ax.text(0.5, 0.5, "No data to display", ha="center", va="center",
                     color="white", fontsize=13)
-            ax.set_facecolor("#191414")
+            ax.set_facecolor("#121212")
             ax.axis("off")
             return fig
                     
         else: # Create a boxplot from the queried dataframe
             queried_df_sorted = queried_df[labels]
-            fig_box, ax_box = plt.subplots(facecolor="#191414")
-            ax_box.set_facecolor("#1e1e1e")
+            fig_box, ax_box = plt.subplots(facecolor="#121212")
+            ax_box.set_facecolor("#181818")
+            tick_labels_display = [FEATURE_DISPLAY_NAMES.get(l, l) for l in labels]
             bplot = ax_box.boxplot(
                 queried_df_sorted, 
                 patch_artist=True,
-                tick_labels=labels,
+                tick_labels=tick_labels_display,
                 orientation='horizontal',
                 **boxplot_style
                 )

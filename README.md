@@ -38,14 +38,19 @@ conda env create -f environment.yml
 # Activate environment
 conda activate chartify
 
-# Optional for Assistant Chat (LLM) tab:
+# Needed for Assistant Chat (LLM) tab:
 # Copy `.env.example` and remove ".example" to be just `.env`.
-# Add the  API key for one of the providers, save and continue the rest of the steps
+# Add the API key (for GITHUB_TOKEN)  save and continue the rest of the steps
 
 # Run draft application locally  
-shiny run --reload --launch-browser src/app.py # → http://127.0.0.1:8050
+shiny run src/app.py # → http://127.0.0.1:PORT# (will show up in terminal)
+# ctrl + c to exit locked terminal 
+
+# To run tests (terminal must be free - see above comment):
+python -m playwright install firefox && python -m pytest -v --browser firefox
+# first part ensures that playwright has a browser test dashboard
+# second part actually is the command to run tests (conditional to first passing)
 
 # Optional (but suggested): deactivate environment when done
 conda deactivate
 ```
-
