@@ -15,7 +15,7 @@
 -   Addressed: Robust Error Handling - implemented plotting logic to prevent SVD convergence errors when there is limited song data for #80 via #96
 -   Addressed: Make AI download button more visible - enhanced contrast of data export button for #80 via #97
 -   Switched data backend from CSV/Pandas to ibis + DuckDB for database level filtering #83 via #104
--   Spec Docs update: revised specification document m4_spec.md to reflect architectural changes and advanced features for #93 via #<PR>
+-   Spec Docs update: revised specification document m4_spec.md to reflect architectural changes and advanced features for #93 via #106 & #109
 
 ### Fixed
 
