@@ -11,10 +11,12 @@ from chatlas import ChatGithub
 import querychat
 from dotenv import load_dotenv
 import ibis
-
-import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+#To find clean parquet file
+_HERE = os.path.dirname(os.path.abspath(__file__))
+con = ibis.connect("duckdb://")
+df = con.read_parquet(os.path.join(_HERE, "..", "data", "clean", "spotify_clean.parquet"), table_name="spotify")
 
 from df_filter import filter_data
 

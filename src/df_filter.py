@@ -16,7 +16,7 @@ def filter_data(df: ibis.expr.types.relations.Table, artist_input: str, platform
     artist = artist_input
  
     if artist:
-        filtered_df = df.filter([df.Artist == artist])
+        filtered_df = df.filter([df.Artist.lower() == artist.lower()])
     else:
         filtered_df = df
  

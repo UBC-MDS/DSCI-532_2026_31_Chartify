@@ -1,15 +1,21 @@
 import pandas as pd
 import pytest
-from df_filter import filter_data
+import ibis
+from src.df_filter import filter_data
  
  
 @pytest.fixture
 def sample_df():
-    return pd.DataFrame({
-        "Artist": ["Taylor Swift", "Drake", "Taylor Swift", "ABBA"],
-        "most_playedon": ["Spotify", "Youtube", "Youtube", "Spotify"],
-        "streams": [1000, 2000, 1500, 3000],
-    })
+    con = ibis.duckdb.connect()
+    return con.create_table(
+        "sample",
+        pd.DataFrame({
+            "Artist": ["Taylor Swift", "Drake", "Taylor Swift", "ABBA"],
+            "most_playedon": ["Spotify", "Youtube", "Youtube", "Spotify"],
+            "streams": [1000, 2000, 1500, 3000],
+        }),
+        overwrite=True,
+    )
  
 def test_filter_by_artist_case_insensitive(sample_df):
     """Filtering by artist should be case-insensitive and return only matching rows."""
