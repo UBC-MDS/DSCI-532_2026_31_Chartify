@@ -1,8 +1,12 @@
+"""Chartify: A Shiny dashboard for exploring Spotify/YouTube music data with AI-assisted querying."""
 from shiny import App, ui, render, reactive
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from shinywidgets import output_widget, render_plotly
 from chatlas import ChatGithub
 import querychat
 from dotenv import load_dotenv
@@ -30,6 +34,7 @@ df = con.read_parquet("data/clean/spotify_clean.parquet", table_name="spotify")
 artists = df.select('Artist').distinct().order_by('Artist').to_pandas()
 artists = artists.Artist.to_list()
 
+# Maps UI metric labels to dataframe column names; used by scatter plot and filters.
 METRIC_COLUMN_MAP = {
     "Streams": "Stream",
     "Likes": "Likes",
@@ -37,6 +42,7 @@ METRIC_COLUMN_MAP = {
     "Comments": "Comments",
 }
 
+# Audio features plotted in the scatter grid; MinMaxScaler normalizes them for comparison.
 NUMERICAL_FEATURES = [
     "Danceability", "Energy", "Loudness", "Speechiness",
     "Acousticness", "Instrumentalness", "Liveness",
@@ -80,14 +86,14 @@ qc = querychat.QueryChat(
     data_description="CRITICAL RULE: You are generating queries for a system that automatically applies a LIMIT. NEVER include a LIMIT clause in your SQL outputs."
 )
 
-
-
+# Main app UI: navbar with Dashboard (filtered scatter + Top 5) and AI Assistant tabs.
 app_ui = ui.page_navbar(
 
     ui.nav_panel("Dashboard",
 
         ui.layout_sidebar(
 
+            # Sidebar: artist picker, metric selector, and platform filter.
             ui.sidebar(
                 ui.div(
                     ui.span("Filters", style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #b3b3b3; text-transform: uppercase;"),
@@ -152,6 +158,7 @@ app_ui = ui.page_navbar(
         ),
     ),
 
+    # AI Assistant: chat sidebar, box/bar plots of queried data, and downloadable table.
     ui.nav_panel("AI Assistant",
     ui.page_sidebar(
         qc.sidebar(),
@@ -386,10 +393,10 @@ app_ui = ui.page_navbar(
 
 
 def server(input, output, session):
-
+    """Server logic: reactive data, Dashboard outputs, and AI Assistant integration."""
     qc_vals = qc.server()
-    # qc_vals.df(), will give filtered df later
 
+    # Reactive dataframe from AI chat; drives the queried table, plots, and CSV export.
     @reactive.calc
     def queried_data():
         queried_df = qc_vals.df()
@@ -404,6 +411,7 @@ def server(input, output, session):
     def export_queried_df():
         yield queried_data().to_csv(index=False)
 
+    # Filters Dashboard data by artist and platform; used by scatter, Top 5, and metric cards.
     @reactive.calc
     def filtered():
         filtered_df = filter_data(df = df,
@@ -411,8 +419,9 @@ def server(input, output, session):
                             platform_input = input.filter_platform())
         return filtered_df
 
+    # Grid of scatter plots: each audio feature vs selected metric, with trend lines and Top 5 highlight.
     @output
-    @render.plot
+    @render_plotly
     def scatter_plot():
         data = filtered().copy()
         metric_label = input.filter_metric()
@@ -447,12 +456,66 @@ def server(input, output, session):
             "#FF4500", "#9B59B6"
         ]
 
+        # get selected track from Top 5 table 
+        selected_track = None
+        try:
+            sel = top_5.cell_selection()
+            if sel["type"] == "row" and sel.get("rows"):
+                top5_data = filtered().sort_values(by=["Stream"], ascending=False).head(5)
+                idx = sel["rows"][0]
+                if idx < len(top5_data):
+                    selected_track = top5_data.iloc[idx]["Track"]
+        except Exception:
+            pass
+
         for i, feature in enumerate(features_present):
-            ax = axes[i]
-            ax.set_facecolor("#1e1e1e")
-            plot_data = data[[metric_col, feature]].dropna()
-            ax.scatter(plot_data[metric_col], plot_data[feature],
-                    color=BRAND_COLORS[i % len(BRAND_COLORS)], alpha=0.7, s=60, edgecolors="none")
+            row, col = i // ncols + 1, i % ncols + 1
+            plot_data = data[[metric_col, feature, "Track"]].dropna()
+
+            # Main scatter with hover showing song title
+            fig.add_trace(
+                go.Scatter(
+                    x=plot_data[metric_col],
+                    y=plot_data[feature],
+                    mode="markers",
+                    marker=dict(
+                        color=BRAND_COLORS[i % len(BRAND_COLORS)],
+                        size=8,
+                        opacity=0.7,
+                        line=dict(width=0),
+                    ),
+                    customdata=plot_data["Track"],
+                    hovertemplate="<b>%{customdata}</b><br>" + f"{metric_label}: %{{x:,.0f}}<br>{FEATURE_DISPLAY_NAMES.get(feature, feature)}: %{{y:.3f}}<extra></extra>",
+                    name=feature,
+                    showlegend=False,
+                ),
+                row=row, col=col,
+            )
+
+            # highlight point for selected track
+            if selected_track is not None:
+                sel_data = plot_data[plot_data["Track"] == selected_track]
+                if not sel_data.empty:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=sel_data[metric_col],
+                            y=sel_data[feature],
+                            mode="markers",
+                            marker=dict(
+                                color="#FFFFFF",
+                                size=14,
+                                opacity=1,
+                                line=dict(color="#1DB954", width=3),
+                                symbol="circle",
+                            ),
+                            customdata=sel_data["Track"],
+                            hovertemplate="<b>%{customdata}</b> (selected)<br>" + f"{metric_label}: %{{x:,.0f}}<br>{FEATURE_DISPLAY_NAMES.get(feature, feature)}: %{{y:.3f}}<extra></extra>",
+                            showlegend=False,
+                        ),
+                        row=row, col=col,
+                    )
+
+            # Trend line
             m, b = np.polyfit(plot_data[metric_col], plot_data[feature], 1)
             x_line = np.linspace(plot_data[metric_col].min(), plot_data[metric_col].max(), 100)
             fig.add_trace(
@@ -482,6 +545,7 @@ def server(input, output, session):
         fig.update_yaxes(gridcolor="rgba(255,255,255,0.1)", tickfont=dict(color="white"))
         return fig
 
+    # Bar chart of song counts by platform (Spotify vs YouTube) for the AI-queried data.
     @output
     @render.plot
     def bar_plot():
@@ -536,16 +600,24 @@ def server(input, output, session):
         ax.set_facecolor("#121212")
         return fig
 
+    # Top 5 songs by streams for filtered data; row selection syncs with scatter plot highlight.
     @output
     @render.data_frame
     def top_5():
         df_top5 = filtered()
-        df_top5 = df_top5.sort_values(by=['Stream'], ascending = False)
-        df_top5 = df_top5.rename(columns={"most_playedon":"Most Played On", "Stream":"Streams"})
+        df_top5 = df_top5.sort_values(by=['Stream'], ascending=False)
+        df_top5 = df_top5.rename(columns={"most_playedon": "Most Played On", "Stream": "Streams"})
         df_top5 = df_top5[['Track', 'Album', 'Most Played On', 'Streams']].iloc[:5]
-        df_top5["Streams"] = df_top5["Streams"].apply(lambda x : "{:,.0f}".format(x))
-        return render.DataGrid(df_top5)
+        df_top5["Streams"] = df_top5["Streams"].apply(lambda x: "{:,.0f}".format(x))
+        return render.DataGrid(df_top5, selection_mode="row")
 
+    # Clears the Top 5 table selection when the user clicks "Clear selection".
+    @reactive.Effect
+    @reactive.event(input.clear_selection)
+    async def _():
+        await top_5.update_cell_selection(None)
+
+    # Metric cards: average views, streams, and likes for the filtered Dashboard data.
     @output
     @render.text
     def card_avg_views():
@@ -568,6 +640,7 @@ def server(input, output, session):
         avg = data["Likes"].mean() if (data["Likes"] != 0).any() else 0
         return f"{avg:,.0f}"
     
+    # Horizontal boxplot of audio features for the AI-queried data.
     @output
     @render.plot
     def box_plot():
@@ -604,7 +677,7 @@ def server(input, output, session):
             bplot = ax_box.boxplot(
                 queried_df_sorted, 
                 patch_artist=True,
-                tick_labels=labels,
+                tick_labels=tick_labels_display,
                 orientation='horizontal',
                 **boxplot_style
                 )
