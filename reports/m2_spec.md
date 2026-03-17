@@ -21,6 +21,9 @@
 | `card_avg_likes`  | Output        | `@render.ui`               | `filtered`                        | #1, #2     |
 | `top_5`           | Output        | `@render.data_frame`       | `filtered`                        | #2         |
 | `scatter_plot`    | Output        | `@render.plot`             | `filter_metric`, `filtered`       | #3         |
+| `queried_data`    | Reactive calc | `@reactive.calc`           | `qc_vals.df()` (QueryChat state)  | AI Assistant |
+| `queried_df_tbl`  | Output        | `@render.data_frame`       | `queried_data`                    | AI Assistant |
+| `export_queried_df` | Output      | `@render.download`         | `queried_data`                    | AI Assistant |
 
 ### 2.3 Reactivity Diagram
 
@@ -34,6 +37,12 @@ flowchart TD
   F --> C3([card_avg_likes])
   F --> T1([table_top5songs])
   F --> P1
+
+  subgraph AI_Assistant["AI Assistant (QueryChat)"]
+    QC[/user queries/] --> QD{{queried_data}}
+    QD --> T2([queried_df_tbl])
+    QD --> EXP([export_queried_df])
+  end
 ```
 
 ### 2.4 Calculation Details
@@ -73,3 +82,23 @@ flowchart TD
 - **Depends on:** `filter_metric`, `filtered`
 - **Transformation:** Maps the selected metric label to its column name via `METRIC_COLUMN_MAP`. Drops rows with NaN in the metric column, then melts the filtered dataframe from wide to long format using all available `NUMERICAL_FEATURES` as value variables. Each row in the melted dataframe represents one (song, audio feature) pair, plotted with the metric on the x-axis and feature values on the y-axis, coloured by feature name.
 - **Consumed by:** Scatter plot widget
+
+### 2.5 AI Assistant (QueryChat) Components
+
+**`queried_data`**
+
+- **Depends on:** `qc_vals.df()` (QueryChat state driven by user natural-language queries)
+- **Transformation:** Returns the dataframe produced by the QueryChat AI assistant based on the user's queries. Applies `MinMaxScaler` to `NUMERICAL_FEATURES` for downstream visualizations.
+- **Consumed by:** `queried_df_tbl`, `export_queried_df`, `box_plot`, `bar_plot`
+
+**`queried_df_tbl`**
+
+- **Depends on:** `queried_data`
+- **Transformation:** Renders the filtered Chartify dataframe as an interactive `DataGrid` table in the AI Assistant tab. Displays all columns from the queried result set.
+- **Consumed by:** "Filtered Chartify Data" card table
+
+**`export_queried_df`**
+
+- **Depends on:** `queried_data`
+- **Transformation:** Provides a CSV download of the queried dataframe. Filename: `chartify_data.csv`.
+- **Consumed by:** "Download Queried Table as CSV" button
