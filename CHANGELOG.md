@@ -2,15 +2,11 @@
 
 ### Added
 
-<!-- New features, components, tests - one line each. Reference PRs where relevant (e.g. #12). -->
-
+-   Implemented Parquet and DuckDB data loading for improved performance and lazy-loading capabilities for #83 via #104
 -   Advanced Feature: Option D: Component click-event interaction - implemented Plotly click-event interactivity on scatterplots and data table for #83 via #95
+-   Added testing suite of 3 playwright behaviour tests and 1 pytest unit test for filtering logic for #84 via #100 #101
 
 ### Changed
-
-<!-- Spec or design deviations, and motivation. -->
-
-<!-- Feedback items you addressed: "Addressed: <item description> (#<prioritization issue>) via #<PR>" -->
 
 -   Addressed: Improved Readability - updated scatterplot feature titles for better readability for #80 via #95
 -   Addressed: Layout Optimization - rearranged graphics on main tab by moving top 5 songs table above the scatterplots for #80 via #95
@@ -18,10 +14,10 @@
 -   Addressed: Documentation and Local Setup - resolved environment naming inconsistency and Windows UnicodeDecodeError for #80 via #96
 -   Addressed: Robust Error Handling - implemented plotting logic to prevent SVD convergence errors when there is limited song data for #80 via #96
 -   Addressed: Make AI download button more visible - enhanced contrast of data export button for #80 via #97
+-   Switched data backend from CSV/Pandas to ibis + DuckDB for database level filtering #83 via #104
+-   Spec Docs update: revised specification document m4_spec.md to reflect architectural changes and advanced features for #93 via #106 & #109
 
 ### Fixed
-
-<!-- Bugs resolved since M3. -->
 
 -   **Feedback prioritization issue link:** #80
 -   Resolved critical feedback regarding cross-filtering by enabling click-event interactivity on the scatterplots and data table for #80 via #95
@@ -31,28 +27,52 @@
 -   Fixed non-critical feedback regarding environment name mismatch in `environment.yml`, changed from `chartify3` to `chartify` for #80 via #96
 -   Resolved critical feedback of "SVD did not converge in Linear Least Squares" in the dashboard by implementing `empty_fig()` in `app.py` to detect low variance in track metrics for #80 via #96
 -   Resolved critical visibility issue with "Download Queried Table as CSV" button by applying custom CSS theme to maintain visual consistency across the dashboard for #80 via #97
-
+-   Resolved ba chart title "Songs by Platform" on "AI Assistant" tab no longer get cut off at some aspect ratios/browser dimensions for #80 & #86 via #102
+  
 ### Known Issues
 
--   <!-- Anything incomplete or broken TAs should be aware of (so it isn't mistaken for unfinished work). -->
+-   chartBot chat window lacks dedicated scrollbar, long conversations extend the whole browser window
+-   filtered Chartify dataframe on "AI Assistant" tab window extends longer with every subsequent ChartBot query when sidebar is open. When sidebar is closed, dataframe card is at fixed height
+-   returned queried dataframe has and displays far too many decimal points
+
 
 ### Release Highlight: Scatterplot and Data Table Interactivity
 
+We implemented two-way interactivity between "Top 5 Songs" table and scatterplot grid. When a user clicks a specific song in table, the dashboard reacts by highlighting the song across all audio feature plots, allowing for immediate visual comparison of the song's features. The user can also hover over plot points to see specific song details.
+
 -   **Option chosen:** D
 -   **PR:** #95
--   **Why this option over the others:** We chose Option D to address peer feedback (#80) regarding the static nature of the dashboard. We implemented two-way interactivity: users can click a song in the "Top 5 Songs" table to highlight its corresponding point in the scatterplots, and they can hover over plot points to see specific song details. This also fulfills the requirement for the advanced component-to-component interaction for #83.
+-   **Why this option over the others:** We chose Option D to address peer feedback (#80) regarding the static nature of the dashboard. This also fulfills the requirement for the advanced component-to-component interaction for #83.
 -   **Feature prioritization issue link:** #83
 
 ### Collaboration
 
-<!-- Summary of workflow or collaboration improvements made since M3. -->
+-   **CONTRIBUTING.md:** #81
 
--   **CONTRIBUTING.md:** <!-- Link to the PR that updated it with your M3 retrospective and M4 norms. -->
--   **M3 retrospective:** <!-- What changed in your workflow after M3 collaboration feedback. -->
--   **M4:** <!-- What you tried or improved this milestone. -->
+-   **M3 retrospective: What went well**
+
+    -   Consistent progress: We stayed on schedule and successfully shipped all the core features planned for M3
+    -   Feature Integration: We successfully connected the backend logic to the UI, ensuring dashboard updates correctly when users interact with it
+    -   Technical Ownership: Each team member took clear responsibility for their own sections (eg querychat, scatterplots, etc) to get them finished
+
+-   **M3 retrospective: What can be improved**
+
+    -   Review History: Some PRs were merged without recorded approvals
+    -   PR Size Management: While there were some large lines of code (LoC) that were necessary to initialize new features from scratch (eg querychat), we worked on breaking down follow-up updates into smaller pieces
+    -   Documentation: Some code updates were pushed without corresponding changes to the design specifications docs during M3
+
+-   **Milestone 4 Collaboration Norms**
+
+    -   Visible Approvals: At least one team member will review the PR before performing merger. Ideally with a quick comment if possible
+    -   Balanced Reviewing: We will rotate the PR reviews so that the review workload is shared equally
+    -   Smaller Updates: After feature initialized, we will try to keep updates small so they are easier for team members to read and check
+    -   Update Docs: If PR changes how the app works, person making the change will also update the project notes in same PR
 
 ### Reflection
 
+The Chartify dashboard now allows both high level artist metrics along with a more granular interactive song analysis. The implementation of click-event interactivity (advanced feature option D) has significantly improved the user experience, turning static scatterplots into more of an exploration tool. Additionally the transition of DuckDB and Parquet ensures that the dashboard app is performing optimally by moving the filter logic to the database level, which also reduces memory overhead.
+
+Current limitations primarily involve UI polishing and data presentation. For example, the Chartbot window lacks a dedicated scrollbar, making long conversations with Chartbot annoying to navigate, and the queried data table currently displays excessive decimal places which clutters the interface.
 
 #### Tests Coverage:
 `test_default_metric_cards_are_correct`
@@ -72,12 +92,9 @@ This test covers that the scatter plot renders all 20 expected traces on default
      any intentional deviations from DSCI 531 visualization best practices. -->
 ```
 
-<!-- Trade-offs: one sentence on feedback prioritization - full rationale is in #<issue> and ### Changed above. -->
+Regarding feedback prioritization, we focused on critical issues such as backend stability and accessibility over smaller cosmetic issues and nice-haves. The full rationale is in #80 and in the Changed section above. 
 
-```{=html}
-<!-- Most useful: which lecture, material, or feedback shaped your work most this milestone,
-     and anything you wish had been covered. -->
-```
+The most impactful material in this milestone was in lecture 7 on "Databases in Shiny" for performance optimization. Being able to use the Parquet + ibis + DuckDb combo provided a clear framework on how to build scalable Shiny applications. While we were able to create and apply our custom CSS theming, some more in-depth material on CSS customization and dashboard theming would have been helpful.
 
 # \[0.3.0\] - 2026-03-08
 
@@ -93,7 +110,7 @@ This test covers that the scatter plot renders all 20 expected traces on default
 ### Changed
 
 -   some UI design choices according to feedback: further mentioned in `fixed` below for #65 via #67 #69
--   migrated required packages from `‎environment.yml` into `requirements.txt` with a referance to requirements file for #64 via #71
+-   migrated required packages from `environment.yml` into `requirements.txt` with a referance to requirements file for #64 via #71
 
 ### Fixed
 
