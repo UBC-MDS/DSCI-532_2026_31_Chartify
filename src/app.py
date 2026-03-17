@@ -141,7 +141,7 @@ app_ui = ui.page_navbar(
             ui.column(12, ui.card(
                 ui.div(ui.span("Top 5 Songs", style="font-size: 1.5rem; font-weight: 700;"), style="text-align: center; margin-bottom: 0.5rem;"),
                 ui.output_data_frame("top_5"),
-                ui.div(ui.input_action_button("clear_selection", "Clear selection"), style="margin-top: 0.75rem;"),
+                ui.div(ui.input_action_button("clear_selection", "Clear selection"), style="margin-top: 0.75rem; display: flex; justify-content: center;"),
             )),
 
             ui.br(),
@@ -247,6 +247,16 @@ app_ui = ui.page_navbar(
             letter-spacing: 0.05em !important;
             text-transform: uppercase !important;
             border-bottom: 1px solid #333333 !important;
+        }
+        /* Top 5 Songs table: Spotify green header */
+        #top_5 thead th,
+        #top_5 .shiny-data-grid thead th,
+        [data-id="top_5"] thead th,
+        [data-id="top_5"] .shiny-data-grid thead th {
+            background-color: #1DB954 !important;
+            color: #ffffff !important;
+            font-family: 'Circular Std', Helvetica, sans-serif !important;
+            font-weight: 700 !important;
         }
         .shiny-data-grid tbody tr {
             background-color: #181818 !important;
