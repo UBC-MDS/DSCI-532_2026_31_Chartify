@@ -10,7 +10,7 @@ from shinywidgets import output_widget, render_plotly
 from chatlas import ChatGithub
 import querychat
 from dotenv import load_dotenv
-
+import ibis
 
 import sys
 import os
@@ -21,15 +21,13 @@ from df_filter import filter_data
 load_dotenv()
 
 
-try:
-    from . import get_data as gd
-except ImportError:
-    import get_data as gd
+# Use ibis to Load the Parquet file.
+con = ibis.connect("duckdb://")
+df = con.read_parquet("data/clean/spotify_clean.parquet", table_name="spotify")
 
-# Load dataset and build sorted artist list for the Dashboard filter dropdown.
-df = gd.get_data()
-artists = list(df.Artist.unique())
-artists.sort()
+# Build sorted artist list for the Dashboard filter dropdown.
+artists = df.select('Artist').distinct().order_by('Artist').to_pandas()
+artists = artists.Artist.to_list()
 
 # Maps UI metric labels to dataframe column names; used by scatter plot and filters.
 METRIC_COLUMN_MAP = {
@@ -62,7 +60,7 @@ FEATURE_DISPLAY_NAMES = {
 
 # AI chat client for natural-language queries over the dataset; powers the AI Assistant tab.
 qc = querychat.QueryChat(
-    df,
+    df.to_pandas(),
     "df",
     client=ChatGithub(model="gpt-4o-mini"),  # free tier model
     greeting="Hi! Ask me anything about this music dataset. Try: 'Show me all songs by Drake' or 'Filter to songs with over 100 million streams'",
@@ -405,7 +403,9 @@ def server(input, output, session):
     # Reactive dataframe from AI chat; drives the queried table, plots, and CSV export.
     @reactive.calc
     def queried_data():
-        return qc_vals.df()
+        queried_df = qc_vals.df()
+        queried_df[NUMERICAL_FEATURES] = MinMaxScaler().fit_transform(queried_df[NUMERICAL_FEATURES])
+        return queried_df
 
     @render.data_frame
     def queried_df_tbl():
