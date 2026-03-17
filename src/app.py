@@ -18,7 +18,10 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 con = ibis.connect("duckdb://")
 df = con.read_parquet(os.path.join(_HERE, "..", "data", "clean", "spotify_clean.parquet"), table_name="spotify")
 
-from src.df_filter import filter_data
+try:
+    from src.df_filter import filter_data  # Posit Cloud: runs from project root
+except ModuleNotFoundError:
+    from df_filter import filter_data       # local: runs from src/
 
 load_dotenv()
 

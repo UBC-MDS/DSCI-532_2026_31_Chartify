@@ -97,6 +97,16 @@ def test_scatter_plot_has_traces(page: Page, app: ShinyAppProc) -> None:
     plotly_div = page.locator("#scatter_plot .js-plotly-plot")
     plotly_div.wait_for(state="visible", timeout=20000)
 
+    # "Wait until Plotly has finished its internal render and _fullData is populated.
+    # wait_for() passing only confirms the element is in the DOM — Plotly's JS
+    # render cycle runs after that, so we poll until _fullData is non-empty."
+    page.wait_for_function(
+        """() => {
+            const el = document.querySelector('#scatter_plot .js-plotly-plot');
+            return el && el._fullData && el._fullData.length > 0;
+        }""",
+        timeout=20000
+    )
 
     # Assert exact trace count: 10 features × (1 scatter + 1 trend line) = 20
     trace_count = page.eval_on_selector( 
