@@ -3,7 +3,7 @@
 from shiny.playwright import controller
 from shiny.run import ShinyAppProc
 from shiny.pytest import create_app_fixture
-from playwright.sync_api import Page
+from playwright.sync_api import Page, expect
 
 app = create_app_fixture("src/app.py")
 
@@ -45,10 +45,20 @@ def test_platform_spotify_filter_for_top5(page: Page, app: ShinyAppProc) -> None
     platform.set("Spotify", timeout=10000)
     page.wait_for_load_state("networkidle")
 
-    top5.expect_cell("Spotify", row=0, col=2, timeout=20000)
-    top5.expect_cell("Dancing Queen", row=0, col=0, timeout=10000)
-    top5.expect_cell("252,601,051", row=4, col=3, timeout=10000)
-    top5.expect_nrow(5,  timeout=10000)
+    top5.expect_nrow(5, timeout=15000)
+
+    # Kept getting DOM node errors. Asked Claude & it helped by giving me a function 
+    # which uses page.locator() / a lazy descriptor — and finds the fresh node cleanly.
+    # to try avoid running into the issue of "Element is not attached to the DOM" which
+    # are very unpredictable / inconsistent bugs 
+    def _expect_cell(page, output_id, row, col, value, timeout=15000):
+        '''helper function to fix "Element is not attached to the DOM" errors'''
+        cell = page.locator(f"#{output_id} tbody tr:nth-child({row + 1}) td:nth-child({col + 1})")
+        expect(cell).to_have_text(value, timeout=timeout)
+    
+    _expect_cell(page, "top_5", row=0, col=0, value="Dancing Queen")
+    _expect_cell(page, "top_5", row=0, col=2, value="Spotify")
+    _expect_cell(page, "top_5", row=4, col=3, value="252,601,051")
 
 
 def test_metric_select_changes_makes_no_unintended_updates(page: Page, app: ShinyAppProc) -> None:
