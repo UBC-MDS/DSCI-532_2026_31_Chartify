@@ -66,6 +66,7 @@ qc = querychat.QueryChat(
     "df",
     client=ChatGithub(model="gpt-4o-mini"),  # free tier model
     greeting="Hi! Ask me anything about this music dataset. Try: 'Show me all songs by Drake' or 'Filter to songs with over 100 million streams'",
+    data_description="CRITICAL RULE: You are generating queries for a system that automatically applies a LIMIT. NEVER include a LIMIT clause in your SQL outputs."
 )
 
 # Main app UI: navbar with Dashboard (filtered scatter + Top 5) and AI Assistant tabs.
@@ -77,34 +78,30 @@ app_ui = ui.page_navbar(
 
             # Sidebar: artist picker, metric selector, and platform filter.
             ui.sidebar(
-                ui.h4("Filters", color='white'),
-                ui.input_selectize("artist", 
-                               "Select The Artist's Name", 
-                               choices=artists, 
-                               remove_button=True, 
-                               options=(
-                                   {
-                                        "placeholder": "Enter text"
-                                        }
-                                   )
+                ui.div(ui.span("Filters", style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #b3b3b3; text-transform: uppercase;"), style="margin-bottom: 1rem;"),
+                ui.input_selectize("artist",
+                               "Artist",
+                               choices=artists,
+                               remove_button=True,
+                               options=({"placeholder": "Search artists"}),
                                ),
-                ui.input_select("filter_metric", "Metric of Interest",
+                ui.input_select("filter_metric", "Metric",
                                 choices=["Streams", "Likes", "Views", "Comments"],
                                 selected="Streams"),
                 ui.input_radio_buttons("filter_platform", "Platform",
                                     choices=["Spotify", "Youtube", "Both"],
                                     selected="Both"),
-                width=300,
+                width=280,
                 open={"desktop": "open", "mobile": "closed"},
             ),
 
-            # Summary metrics: average streams, likes, and views for the filtered data.
+            # Summary metrics: streams, likes, views for the filtered data.
             ui.row(
-                ui.column(4, ui.value_box(title="Average Stream Count",
+                ui.column(4, ui.value_box(title="Streams",
                                         value=ui.output_text("card_avg_stream"))),
-                ui.column(4, ui.value_box(title="Average Like Count",
+                ui.column(4, ui.value_box(title="Likes",
                                         value=ui.output_text("card_avg_likes"))),
-                ui.column(4, ui.value_box(title="Average View Count",
+                ui.column(4, ui.value_box(title="Views",
                                         value=ui.output_text("card_avg_views"))),
             ),
 
@@ -112,9 +109,9 @@ app_ui = ui.page_navbar(
 
             # Top 5 songs by streams; row selection highlights the track in the scatter plot.
             ui.column(12, ui.card(
-                ui.div(ui.h4("Top 5 Songs"), style="text-align: center;"),
+                ui.div(ui.span("Top 5 Songs", style="font-size: 1.5rem; font-weight: 700;"), style="text-align: center; margin-bottom: 0.5rem;"),
                 ui.output_data_frame("top_5"),
-                ui.input_action_button("clear_selection", "Clear selection"),
+                ui.div(ui.input_action_button("clear_selection", "Clear selection"), style="margin-top: 0.75rem;"),
             )),
 
             ui.br(),
@@ -154,245 +151,195 @@ app_ui = ui.page_navbar(
 
     title="Chartify",
 
-    # Spotify-inspired dark theme: green accents, dark backgrounds, Circular Std font.
+    # Spotify web app aesthetic: #121212 main, #181818 cards, #1DB954 accents
     header=ui.tags.style("""
         @import url('https://fonts.googleapis.com/css2?family=Circular+Std&display=swap');
 
         * { font-family: 'Circular Std', Helvetica, sans-serif; }
-        body { background-color: #191414; color: white; }
-        .card { background-color: #2a2a2a; border-color: #333333; color: white; }
-        .card h4 { color: white; }
+        body {
+            background: linear-gradient(135deg, #121212 0%, #0f1a12 50%, #121212 100%) !important;
+            color: #ffffff;
+        }
+        
+        /* Cards: Spotify section background, subtle border, rounded corners */
+        .card {
+            background-color: #181818 !important;
+            border: 1px solid #282828 !important;
+            border-radius: 8px !important;
+            color: #ffffff !important;
+        }
+        .card h4, .card-header { color: #ffffff !important; }
+        
+        /* Value boxes: subtle green gradient, no accent bar */
         .bslib-value-box {
-            background-color: #2a2a2a !important;
-            border: 1px solid #1DB954 !important;
-            color: white !important;
+            background: linear-gradient(135deg, #1a231a 0%, #181818 50%, #152018 100%) !important;
+            border: 1px solid #282828 !important;
+            border-radius: 8px !important;
+            color: #ffffff !important;
             text-align: center !important;
         }
         .bslib-value-box .value-box-value,
         .bslib-value-box .value-box-title,
         .bslib-value-box p,
         .bslib-value-box span {
-            color: white !important;
+            color: #ffffff !important;
             text-align: center !important;
         }
         .bslib-value-box .value-box-showcase {
-            background-color: #1DB954 !important;
-            color: white !important;
-        }
-        .form-control { background-color: #2a2a2a; color: white; border-color: #333333; }
-        .form-control::placeholder { color: #888888; }
-
-        /* Table header text */
-        thead th, .shiny-data-grid thead th {
-            color: #000000 !important;
-            background-color: #1DB954 !important;
+            background-color: transparent !important;
+            color: #1DB954 !important;
         }
         
-        /* Table hover logic*/
-         .shiny-data-grid tbody tr:hover {
-            background-color: transparent !important;
+        /* Inputs: subtle dark background, green on focus */
+        .form-control, .selectize-input, select.form-control {
+            background-color: #282828 !important;
+            color: #ffffff !important;
+            border: 1px solid #333333 !important;
+            border-radius: 4px !important;
+        }
+        .form-control:focus, .selectize-input.focus {
+            border-color: #1DB954 !important;
+            box-shadow: 0 0 0 1px #1DB954 !important;
+        }
+        .form-control::placeholder { color: #727272; }
+        .shiny-input-select select, select {
+            background-color: #282828 !important;
+            color: #ffffff !important;
+            border: 1px solid #333333 !important;
         }
 
+        /* Table: minimal Spotify-style, subtle header */
+        thead th, .shiny-data-grid thead th {
+            color: #b3b3b3 !important;
+            background-color: #282828 !important;
+            font-weight: 600 !important;
+            font-size: 0.75rem !important;
+            letter-spacing: 0.05em !important;
+            text-transform: uppercase !important;
+            border-bottom: 1px solid #333333 !important;
+        }
+        .shiny-data-grid tbody tr {
+            background-color: #181818 !important;
+        }
         .shiny-data-grid tbody tr:hover td {
-            background-color: inherit !important;
-            color: inherit !important;
-            box-shadow: inset 0 1px 0 #1DB954, inset 0 -1px 0 #1DB954;
+            background-color: #282828 !important;
+            color: #ffffff !important;
         }
-
-        /* Selected row - Spotify green instead of blue */
         .shiny-data-grid tbody tr[aria-selected=true],
         .shiny-data-grid tbody tr[aria-selected=true] td {
-            background-color: rgba(29, 185, 84, 0.25) !important;
-            color: white !important;
+            background-color: rgba(29, 185, 84, 0.15) !important;
+            color: #ffffff !important;
         }
-                    
-        /* Title */
+
         h1 {
             font-family: 'Circular Std', Helvetica, sans-serif;
-            font-weight: 900;
-            color: white !important;
-            -webkit-text-fill-color: white !important;
+            font-weight: 700;
+            color: #ffffff !important;
         }
 
-        /* Card green outlines */
-        .card {
-            border: 1px solid #1DB954 !important;
-        }
-        
-        /* Green border on ALL dropdowns/inputs */
-        .form-control, .selectize-input, select.form-control {
-            border: 1px solid #1DB954 !important;
-            background-color: #2a2a2a !important;
-            color: white !important;
-        }
-                    
-        /* Fix dropdown background (the select element itself) */
-        .shiny-input-select select,
-        select {
-            background-color: #2a2a2a !important;
-            color: white !important;
-            border: 1px solid #1DB954 !important;
-        }
-
-    
-        
-        /* Sidebar background */
+        /* Sidebar: black like Spotify left nav */
         .bslib-sidebar-layout > .sidebar {
-            background-color: #111111 !important;
-                         
-        }
-                                        
-         /* Sidebar collapse toggle */                
-        .bslib-sidebar-layout .collapse-toggle {
-            color: #1DB954 !important;
-            background-color: #111111 !important;
-        }
-                         
-        .bslib-sidebar-layout .collapse-toggle:hover {
-            background-color: #1DB954 !important;
-            color: black !important;
-        }
-        
-        /* Navbar - black background, white text, Spotify font */
-        .navbar {
             background-color: #000000 !important;
         }
-
-        .navbar-brand,
-        .navbar .navbar-brand {
-            color: white !important;
-            font-weight: 900 !important;
-            font-size: 1.4rem !important;
+        .bslib-sidebar-layout .collapse-toggle {
+            color: #b3b3b3 !important;
+            background-color: #000000 !important;
+        }
+        .bslib-sidebar-layout .collapse-toggle:hover {
+            color: #1DB954 !important;
         }
 
+        /* Navbar: black, minimal */
+        .navbar {
+            background-color: #000000 !important;
+            border-bottom: 1px solid #282828 !important;
+        }
+        .navbar-brand, .navbar .navbar-brand {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            font-size: 1.25rem !important;
+        }
         .navbar-nav .nav-link {
             color: #b3b3b3 !important;
+            font-size: 0.9rem !important;
         }
-
-        .navbar-nav .nav-link:hover,
-        .navbar-nav .nav-link.active {
-            color: white !important;
+        .navbar-nav .nav-link:hover {
+            color: #ffffff !important;
         }
-
-        /* Active tab underline in green */
         .navbar-nav .nav-link.active {
+            color: #ffffff !important;
             border-bottom: 2px solid #1DB954 !important;
-        }
-
-        /* Filters h4 white */
-        .sidebar h4 {
-            color: white !important;
         }
         .querychat-sidebar::before,
         .sidebar[data-tab="AI Assistant"]::before {
             content: "ChartBot";
             display: block;
             font-family: 'Circular Std', Helvetica, sans-serif;
-            font-weight: 900;
-            font-size: 1.8rem;
-            color: white;
-            padding: 16px 16px 8px 16px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #ffffff;
+            padding: 16px 16px 12px 16px;
         }
         .querychat-message.assistant,
         [class*="querychat"] [class*="assistant"] {
-            background-color: #2a2a2a !important;
-            color: white !important;
-            border: 1px solid #1DB954 !important;
-            border-radius: 12px !important;
+            background-color: #282828 !important;
+            color: #ffffff !important;
+            border: 1px solid #333333 !important;
+            border-radius: 8px !important;
             padding: 10px 14px !important;
         }
-        
-        /* Chat message bubbles - User */
         .querychat-message.user,
         [class*="querychat"] [class*="user"] {
             background-color: #1DB954 !important;
-            color: black !important;
-            border-radius: 12px !important;
+            color: #000000 !important;
+            border-radius: 8px !important;
             padding: 10px 14px !important;
         }
-
-        /* General text visibility in chat */
-        [class*="querychat"] p,
-        [class*="querychat"] span,
-        [class*="querychat"] div {
-            color: white !important;
+        [class*="querychat"] p, [class*="querychat"] span, [class*="querychat"] div {
+            color: #ffffff !important;
         }
-
-        /* Avatar/icon circle */
         [class*="querychat"] [class*="avatar"],
         [class*="querychat"] svg {
             color: #1DB954 !important;
-            border-color: #1DB954 !important;
         }
-                         
-        /* SQL query code block */
-        [class*="querychat"] pre,
-        [class*="querychat"] code,
-        .querychat-query-box,
-        pre code {
-            background-color: #1e1e1e !important;
+        [class*="querychat"] pre, [class*="querychat"] code,
+        .querychat-query-box, pre code {
+            background-color: #181818 !important;
             color: #1DB954 !important;
             border: 1px solid #333333 !important;
-            border-radius: 8px !important;
+            border-radius: 6px !important;
         }
-
-        /* Apply Filter button */
-        [class*="querychat"] button,
-        .querychat-apply-btn {
+        [class*="querychat"] button, .querychat-apply-btn {
             background-color: transparent !important;
             color: #1DB954 !important;
             border: 1px solid #1DB954 !important;
-            border-radius: 8px !important;
+            border-radius: 20px !important;
         }
-
         [class*="querychat"] button:hover {
             background-color: #1DB954 !important;
-            color: black !important;
+            color: #000000 !important;
+        }
+        .querychat-sidebar .card, .querychat-sidebar [class*="card"] {
+            background-color: #181818 !important;
+            border: 1px solid #282828 !important;
+            color: #ffffff !important;
         }
 
-        /* The card/bubble wrapping the query */
-        .querychat-sidebar .card,
-        .querychat-sidebar [class*="card"] {
-            background-color: #2a2a2a !important;
-            border: 1px solid #1DB954 !important;
-            color: white !important;
+        .shiny-input-radiogroup label, .control-label, .radio label {
+            color: #b3b3b3 !important;
         }
 
-        /* Radio button label visibility */
-        .shiny-input-radiogroup label,
-        .control-label,
-        .radio label { color: white !important; }
-
-        /* Clear selection button - outlined green by default, fully green when clicked */
-        #clear_selection {
+        /* Buttons: Spotify pill style, green accent */
+        #clear_selection, #export_queried_df {
             background-color: transparent !important;
             color: #1DB954 !important;
-            border: 2px solid #1DB954 !important;
-            border-radius: 8px !important;
+            border: 1px solid #1DB954 !important;
+            border-radius: 20px !important;
+            font-weight: 600 !important;
         }
-        #clear_selection:hover {
-            background-color: rgba(29, 185, 84, 0.2) !important;
-            color: #1DB954 !important;
-        }
-        #clear_selection:active {
+        #clear_selection:hover, #export_queried_df:hover {
             background-color: #1DB954 !important;
-            color: black !important;
-        }
-        
-        /* Download Queried Table as CSV button - outlined green by default, fully green when clicked */
-        #export_queried_df {
-            background-color: #2a2a2a !important;
-            color: #1DB954 !important;
-            border: 2px solid #1DB954 !important;
-            border-radius: 8px !important;
-        }
-        #export_queried_df:hover {
-            background-color: rgba(29, 185, 84, 0.2) !important;
-            color: #1DB954 !important;
-        }
-        #export_queried_df:active {
-            background-color: #1DB954 !important;
-            color: black !important;
+            color: #000000 !important;
         }
     """),
 )
@@ -437,7 +384,7 @@ def server(input, output, session):
             fig = go.Figure()
             fig.add_annotation(text=message, xref="paper", yref="paper",
                                x=0.5, y=0.5, showarrow=False, font=dict(size=16, color="white"))
-            fig.update_layout(template="plotly_dark", paper_bgcolor="#191414", plot_bgcolor="#191414")
+            fig.update_layout(template="plotly_dark", paper_bgcolor="#121212", plot_bgcolor="#121212")
             return fig
         
         if data.empty or metric_col not in data.columns:
@@ -538,8 +485,8 @@ def server(input, output, session):
                 xanchor="center",
             ),
             template="plotly_dark",
-            paper_bgcolor="#191414",
-            plot_bgcolor="#1e1e1e",
+            paper_bgcolor="#121212",
+            plot_bgcolor="#181818",
             font=dict(color="white"),
             height=320 * nrows,
             margin=dict(t=80, b=150, l=50, r=50),
@@ -556,10 +503,10 @@ def server(input, output, session):
     def bar_plot():
         data = queried_data().copy()
         if data.empty or "most_playedon" not in data.columns:
-            fig, ax = plt.subplots(figsize=(7, 5), facecolor="#191414")
+            fig, ax = plt.subplots(figsize=(7, 5), facecolor="#121212")
             ax.text(0.5, 0.5, "No data to display", ha="center", va="center",
                     color="white", fontsize=13)
-            ax.set_facecolor("#191414")
+            ax.set_facecolor("#121212")
             ax.axis("off")
             return fig
 
@@ -567,7 +514,7 @@ def server(input, output, session):
         platforms = ["Spotify", "Youtube"]
         counts = platform_counts.reindex(platforms, fill_value=0)
 
-        fig, ax = plt.subplots(figsize=(7, 5), facecolor="#191414")
+        fig, ax = plt.subplots(figsize=(7, 5), facecolor="#121212")
         fig.subplots_adjust(left=0.15, right=0.92, top=0.88, bottom=0.12)
 
         bars = ax.bar(
@@ -578,7 +525,7 @@ def server(input, output, session):
             width=0.45,
         )
 
-        ax.set_facecolor("#191414")
+        ax.set_facecolor("#121212")
         ax.set_xlabel("Platform", color="#aaaaaa", fontsize=11, labelpad=8)
         ax.set_ylabel("Number of Songs", color="#aaaaaa", fontsize=11, labelpad=8)
 
@@ -602,7 +549,7 @@ def server(input, output, session):
                 color="white", fontsize=13, fontweight="bold"
             )
 
-        ax.set_facecolor("#191414")
+        ax.set_facecolor("#121212")
         return fig
 
     # Top 5 songs by streams for filtered data; row selection syncs with scatter plot highlight.
@@ -667,17 +614,17 @@ def server(input, output, session):
         color_pairs = dict(zip(song_feature, BRAND_COLORS))
         sorted_color_pairs = {k:v for k, v in sorted(color_pairs.items(), key=lambda item:item[0])}
         if queried_df.empty: # if the AI query returns an empty dataframe populate a No Data To Display Plot.
-            fig, ax = plt.subplots(facecolor="#191414")
+            fig, ax = plt.subplots(facecolor="#121212")
             ax.text(0.5, 0.5, "No data to display", ha="center", va="center",
                     color="white", fontsize=13)
-            ax.set_facecolor("#191414")
+            ax.set_facecolor("#121212")
             ax.axis("off")
             return fig
                     
         else: # Create a boxplot from the queried dataframe
             queried_df_sorted = queried_df[labels]
-            fig_box, ax_box = plt.subplots(facecolor="#191414")
-            ax_box.set_facecolor("#1e1e1e")
+            fig_box, ax_box = plt.subplots(facecolor="#121212")
+            ax_box.set_facecolor("#181818")
             tick_labels_display = [FEATURE_DISPLAY_NAMES.get(l, l) for l in labels]
             bplot = ax_box.boxplot(
                 queried_df_sorted, 
